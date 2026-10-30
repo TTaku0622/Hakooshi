@@ -4,40 +4,49 @@ Progate ハッカソン チーム開発用リポジトリ。
 
 ## はじめに（チームメンバー向け）
 
+チームのルールは **`AGENTS.md`** にまとめています（Claude Code と Codex で共通）。
+
 ```bash
 git clone https://github.com/TTaku0622/Progate_hackathon.git
 cd Progate_hackathon
-cp .env.example .env   # 必要な値はチームで共有されたものを入れる
 ```
 
-## AI エージェントのセットアップ
+### Claude Code を使う人
 
-ルールは **`AGENTS.md` 1か所** にまとめています。各エージェントはここを自動で読むので、基本は clone するだけで使えます。
+```bash
+claude
+```
+```
+/progate-hackathon-setup
+```
 
-| 使うエージェント | 読むファイル | やること |
+スキルが次のファイルを作ります（何度実行しても同じ結果になります）。
+
+| ファイル | 内容 | コミット |
 |---|---|---|
-| Claude Code | `CLAUDE.md`（→ `AGENTS.md` を読み込む）、`.claude/settings.json` | リポジトリ直下で `claude` を起動するだけ |
-| Codex CLI | `AGENTS.md` | リポジトリ直下で `codex` を起動するだけ |
-| Cursor | `AGENTS.md` | このフォルダを開くだけ |
-| GitHub Copilot（VS Code） | `.github/copilot-instructions.md` | このフォルダを開くだけ |
-| その他（Gemini CLI など） | — | 最初に「AGENTS.md を読んで従って」と伝える |
+| `CLAUDE.md` | `AGENTS.md` と `docs/PRODUCT.md` を読み込む入口（テンプレートから生成） | しない |
+| `CLAUDE.local.md` | 個人の好み・設定（自由に編集） | しない |
 
-### 個人の設定を足したいとき
+`.claude/settings.json` と `.claude/hooks/guard.py`（機密ファイル・main への push・force push をブロック）はコミット済みなので、clone した時点で有効です。
 
-- Claude Code: `.claude/settings.local.json` や `CLAUDE.local.md` に書く（`.gitignore` 済みでコミットされない）
-- チーム全員に効かせたいルールは `AGENTS.md` を直して PR を出す
+### Codex を使う人
 
-### 共有している Claude Code の設定（`.claude/settings.json`）
+リポジトリ直下で `codex` を起動するだけです。`AGENTS.md` が自動で読み込まれます。
 
-- コミットに Claude の署名（Co-Authored-By）を付けない
-- `.env` を読ませない、`git push --force` をさせない
-- `git status` / `diff` / `log` / `branch` は確認なしで実行できる
+- 個人の好みは `~/.codex/AGENTS.md` に書きます。
+- Claude Code のようなブロック用フックはないので、`.env` を読ませない・main に push しないといったルールは `AGENTS.md` の指示が頼りです。承認モードは、コマンド実行前に確認が出る設定で使ってください。
+
+### 共通
+
+- ルールを変えるときは `AGENTS.md` を直して PR を出します。
+- 環境変数が必要になったら `cp .env.example .env` で各自作成します（`.env` はコミットしない）。
 
 ## 開発ルール（要約）
 
-- main に直接 push しない。`feature/xxx` ブランチ → PR
+- main に直接 push しない。`feature/〇〇` / `fix/〇〇` / `change/〇〇` ブランチ → PR
 - コミットメッセージは英語・命令形・1行（例: `Add login form`）
-- API キーや Webhook URL は `.env` に置き、コミットしない
+- push 前にセキュリティ・整合性・動作確認のチェックをし、結果を PR 本文に書く
+- merge 前にメンバーか AI（Claude Code の `/code-review`、Codex の `/review`）のレビューを挟む
 
 詳しくは [AGENTS.md](AGENTS.md)。
 

@@ -19,7 +19,6 @@ export function getDb() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
-      login_code_hash TEXT NOT NULL,
       created_at INTEGER NOT NULL
     );
     CREATE TABLE IF NOT EXISTS sessions (
@@ -28,5 +27,11 @@ export function getDb() {
       expires_at INTEGER NOT NULL
     );
   `);
+
+  // ログイン用コードをやめる前に作った DB には列が残っているので消す（残すと登録時に NOT NULL で失敗する）
+  const columns = db.prepare("PRAGMA table_info(users)").all() as { name: string }[];
+  if (columns.some((column) => column.name === "login_code_hash")) {
+    db.exec("ALTER TABLE users DROP COLUMN login_code_hash");
+  }
   return db;
 }

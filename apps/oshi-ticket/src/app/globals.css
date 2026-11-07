@@ -657,6 +657,32 @@ html, body {
 .passportPage { position: relative; min-width: 0; display: flex; flex-direction: column; padding: 30px 25px 20px; background: repeating-linear-gradient(45deg,#647b5610 0 1px,transparent 1px 11px), #fcf8eb; }
 .passportPage:nth-child(2) { background: repeating-linear-gradient(-45deg,#647b5610 0 1px,transparent 1px 11px), #f9f3e4; }
 .passportSpine { position: absolute; top: 12px; bottom: 0; left: calc(50% - 10px); width: 20px; pointer-events: none; background: linear-gradient(90deg,transparent,#665e3e20 42%,#fff8d6aa 51%,#8c806125 57%,transparent); }
+
+/* 画面に出すパスポート：02/03 の紙を背表紙を軸にめくる（PNG 保存用の見開きには付けない） */
+.passportFlipStage .passportViewport { overflow: clip visible; }
+.passportFlipStage .passportBook { overflow: visible; perspective: 3600px; }
+.passportFlipStage .passportSpine { z-index: 4; }
+/* 上の帯は本ではなく各ページに付け、めくる紙と一緒に動かす（左右で1本のグラデーションに見えるよう半分ずつ） */
+.passportFlipStage .passportBook::before { content: none; }
+.passportUnder::before, .passportLeafFace::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 12px; z-index: 1; background: linear-gradient(110deg, var(--oshi), var(--prefecture)) 0 0 / 200% 100%; }
+.passportUnder + .passportUnder::before, .passportLeafFront::before { background-position: 100% 0; }
+/* 3D で描くめくる紙のふち（背表紙の位置）が帯の上で細い線になるので、動かない背表紙の上端に帯と同じ色（グラデーションの中央）を重ねて隠す */
+.passportFlipStage .passportSpine::before { content: ""; position: absolute; top: -12px; left: calc(50% - 2px); width: 4px; height: 12px; background: color-mix(in srgb, var(--oshi), var(--prefecture)); }
+.passportUnder, .passportLeafFace { position: relative; display: flex; min-width: 0; }
+.passportUnder > .passportPage, .passportLeafFace > .passportPage { flex: 1; }
+.passportUnder + .passportUnder > .passportPage, .passportLeafFront > .passportPage { background: repeating-linear-gradient(-45deg,#647b5610 0 1px,transparent 1px 11px), #f9f3e4; }
+.passportLeaf { position: absolute; top: 0; bottom: 0; left: 50%; width: 50%; z-index: 2; transform-origin: left center; transform-style: preserve-3d; transition: transform .85s cubic-bezier(.45,.05,.25,1); }
+.passportFlipStage.isBack .passportLeaf { transform: rotateY(-180deg); }
+.passportLeafFace { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.passportLeafBack { transform: rotateY(180deg); }
+/* めくる紙の影と、下のページに落ちる影。紙が少し立ち上がってから付け、垂直に立つ（42% あたり）ときにいちばん濃くし、着地する前に消す */
+.passportShade { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; animation: passportShade .85s ease-in-out; }
+.passportLeafFront .passportShade { background: linear-gradient(90deg,#2f2a1c4d,#2f2a1c14 45%,transparent 80%); }
+.passportLeafBack .passportShade { background: linear-gradient(270deg,#2f2a1c4d,#2f2a1c14 45%,transparent 80%); }
+.passportUnder:first-child .passportShade { background: linear-gradient(270deg,#2f2a1c33,transparent 35%); }
+.passportUnder + .passportUnder .passportShade { background: linear-gradient(90deg,#2f2a1c33,transparent 35%); }
+@keyframes passportShade { 0%, 18% { opacity: 0; } 42% { opacity: 1; } 72%, 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .passportLeaf { transition: none; } .passportShade { display: none; } }
 .passportBrand { display: flex; align-items: center; gap: 9px; color: #7c7753; font-family: Georgia,serif; font-size: 17px; letter-spacing: .12em; font-weight: 700; }
 .passportBrand small { display: block; font: 9px Arial,sans-serif; letter-spacing: .18em; margin-top: 4px; }
 .passportKicker { font-size: 6px; letter-spacing: .11em; color: #9e9982; margin: 13px 0 19px; }

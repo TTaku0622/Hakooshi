@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OSHI JOURNEY | 推しに会う旅を、準備から思い出まで。",
-  description: "Project LINKSの観光データで遠征の費用目安を確認。帰ってきたら写真と実費を加えて、旅を一枚のチケットに。",
+  title: "OSHI PASSPORT | 推しに会う旅を、パスポートに刻もう。",
+  description: "訪問スタンプ、思い出の写真、旅先の観光・宿泊情報を集める推し旅パスポート。Project LINKSの宿泊・鉄道・航路データで、遠征先をもっと知ろう。",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

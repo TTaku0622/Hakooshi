@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { Ticket } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import type { AuthFormState } from "./auth-actions";
 
 type Field = {
@@ -39,10 +39,10 @@ export default function AuthForm({ mode, action, notice }: Props) {
     <main className={"page"}>
       <header className={"header"}>
         <div className={"logo"}>
-          <span className={"logoIcon"}><Ticket size={21} /></span>
-          <span>OSHI JOURNEY</span>
+          <span className={"logoIcon"}><BookOpen size={21} /></span>
+          <span>OSHI PASSPORT</span>
         </div>
-        <span className={"headerTag"}>YOUR MEMORY, YOUR TICKET.</span>
+        <span className={"headerTag"}>A PASSPORT TO YOUR OSHI.</span>
       </header>
 
       <section className={"authCard"}>

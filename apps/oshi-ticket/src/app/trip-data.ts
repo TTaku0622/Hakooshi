@@ -1,4 +1,6 @@
 import tourism from "../data/links-tourism.json";
+import type { Venue } from "./map-utils";
+import type { TravelMode } from "./passport-spread";
 
 export const prefectures = [
   "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
@@ -75,6 +77,11 @@ export type SavedTicket = {
   memory: string;
   image: string;
   photo?: string;
+  venue?: Venue;
+  travelMode?: TravelMode;
+  railwayId?: string;
+  ferryRoute?: string;
+  format?: "passport";
   backImage?: string;
   status?: TripStatus;
   tripType?: TripType;

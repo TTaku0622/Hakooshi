@@ -8,6 +8,7 @@ import { PassportSpread, IdentityPage, VisaPage, PASSPORT_WIDTH, PASSPORT_HEIGHT
 import { PassportNotes, DestinationNotesPage, MyJourneyPage, type PassportNotesProps } from "./passport-notes";
 import { PassportBook } from "./passport-book";
 import { PassportProgress } from "./passport-progress";
+import { getEarnedJourneyBadges } from "./journey-badges";
 import { railways, ferryFacts } from "./travel-data";
 import { ArtistSearch } from "./artist-search";
 import { SetlistSearch } from "./setlist-search";
@@ -17,6 +18,7 @@ import { OshiColors } from "./oshi-colors";
 import { VenueSearch } from "./venue-search";
 import { NearbyMap } from "./nearby-map";
 import { LodgingInfo } from "./lodging-info";
+import { JourneyGps } from "./JourneyGps";
 import type { Venue } from "./map-utils";
 import { prefectureFlagColors } from "./prefecture-colors";
 import { prefectures, tourismYears, parseActualTotal, type SavedTicket, type TourismData, type TripType, type TripStatus, type TicketSide } from "./trip-data";
@@ -450,6 +452,8 @@ export default function TicketApp({ username }: { username: string }) {
       const ticket: SavedTicket = { ...snapshot, image, backImage };
 
       const updated = editingId === null ? [ticket, ...savedTickets] : savedTickets.map((item) => item.id === editingId ? ticket : item);
+      const previousBadgeIds = new Set(getEarnedJourneyBadges(savedTickets).map((badge) => badge.id));
+      const newlyEarnedBadges = getEarnedJourneyBadges(updated).filter((badge) => !previousBadgeIds.has(badge.id));
 
       localStorage.setItem("oshi-journey-collection", JSON.stringify(updated));
 
@@ -459,7 +463,8 @@ export default function TicketApp({ username }: { username: string }) {
 
       setPinnedBenchmark(benchmark);
 
-      setNotice({ type: "success", text: editingId !== null ? "訪問ページを更新しました。" : status === "planned" ? "遠征の予定を保存しました。帰ってきたら写真と実費を追記できます。" : "遠征の思い出を保存しました。" });
+      const savedMessage = editingId !== null ? "訪問ページを更新しました。" : status === "planned" ? "遠征の予定を保存しました。帰ってきたら写真と実費を追記できます。" : "遠征の思い出を保存しました。";
+      setNotice({ type: "success", text: newlyEarnedBadges.length ? `${savedMessage} バッジ獲得：${newlyEarnedBadges.map((badge) => `「${badge.name}」`).join("、")}` : savedMessage });
     } catch {
 
       setNotice({ type: "error", text: "保存できませんでした。ブラウザの保存容量を確認してください。" });
@@ -815,6 +820,8 @@ export default function TicketApp({ username }: { username: string }) {
           <LodgingInfo key={`${venue?.latitude}/${venue?.longitude}`} venue={venue} />
 
           <PassportProgress records={savedTickets} onOpen={(record) => { setSelectedTicket(record); setSelectedSide("front"); }} />
+
+          <JourneyGps tickets={savedTickets} />
 
           <div className="collectionSection">
 

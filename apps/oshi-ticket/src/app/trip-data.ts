@@ -75,6 +75,9 @@ export type SavedTicket = {
   date: string;
   color: string;
   memory: string;
+  setlist?: string[];
+  setlistFmId?: string;
+  setlistSource?: string;
   image: string;
   photo?: string;
   venue?: Venue;

@@ -833,6 +833,17 @@ html, body {
 .passportOwnCost > strong { font: 25px Georgia,serif; }
 .passportOwnCost > small { font-size: 7px; color: #9a967c; }
 .passportNotesMemory { font-size: 10px; line-height: 1.7; overflow-wrap: anywhere; }
+.passportSetlist { margin: 9px 0; padding: 8px 10px; border: 1px solid #beb28c75; background: #fbf6e9; }
+.passportSetlistHeading { display: flex; justify-content: space-between; gap: 8px; color: #697758; font-size: 9px; }
+.passportDataPage { min-height: 0; }
+.passportDataPage:has(.passportSetlistFit) .passportTravelPrompt { min-height: 0; }
+.passportSetlistFit { display: flex; flex: 1 1 0; flex-direction: column; min-height: 0; }
+.passportSetlistArea { position: relative; flex: 1 1 0; min-height: 0; margin-top: 4px; }
+.passportSetlistColumns { position: absolute; inset: 0 0 auto; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: start; gap: 8px; font-size: 9px; }
+.passportSetlistColumns ol { margin: 0; padding-inline-start: 3em; list-style: decimal-leading-zero; line-height: 1.45; }
+.passportSetlistColumns li { overflow-wrap: anywhere; }
+.passportSetlistColumns li::marker { color: #697758; }
+.passportSetlistSource { margin-top: 6px; font-size: 7px; overflow-wrap: anywhere; }
 .passportSeaNote { display: flex; gap: 6px; align-items: center; font-size: 7px; color: #7b9692; }
 .ferryLearning { background: #eff5f4; color: #6e8a86; padding: 12px; border-radius: 9px; line-height: 1.8; font-size: 10px; }
 .passportProgress { border-top: 1px solid #e2e5d9; padding-top: 26px; margin-top: 30px; }
@@ -1348,4 +1359,11 @@ html, body {
   .authFooter {
     font-size: 7px;
   }
+}
+
+.ticketSetlist {
+  margin: 0;
+  padding-inline-start: 1.6em;
+  list-style: decimal;
+  overflow-wrap: anywhere;
 }

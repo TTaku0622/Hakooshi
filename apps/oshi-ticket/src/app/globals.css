@@ -900,3 +900,452 @@ html, body {
   background: #fff; color: #6f6878; padding: 7px 11px; font-size: 11px; font-weight: 700; cursor: pointer;
 }
 .logoutButton:hover { background: #f4f1f8; }
+
+/* ========================================
+   HAKOOSHI Passport Authentication Design
+======================================== */
+
+.authPage {
+  --auth-navy: #172a45;
+  --auth-ivory: #f5f0e5;
+  --auth-gold: #b89a5a;
+  --auth-ink: #24334a;
+  --auth-muted: #8b887f;
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 0 6%;
+  color: var(--auth-ink);
+  background:
+    radial-gradient(ellipse at 50% 45%, #fffdf7 0%, transparent 58%),
+    var(--auth-ivory);
+  font-family: Arial, "Noto Sans JP", sans-serif;
+}
+
+.authHeader {
+  position: relative;
+  z-index: 2;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #172a451a;
+}
+
+.authBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--auth-navy);
+  text-decoration: none;
+  font-family: Georgia, serif;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.authBrandIcon {
+  display: grid;
+  width: 35px;
+  height: 35px;
+  place-items: center;
+  border: 1px solid var(--auth-gold);
+  border-radius: 50%;
+  color: var(--auth-gold);
+}
+
+.authHeaderTag {
+  color: #8c887e;
+  font-family: Georgia, serif;
+  font-size: 9px;
+  letter-spacing: .18em;
+}
+
+.authBackgroundDecoration {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.authRoute {
+  position: absolute;
+  width: 500px;
+  height: 230px;
+  border: 1px dashed #b89a5a35;
+  border-radius: 50%;
+  transform: rotate(-28deg);
+}
+
+.authRouteOne {
+  top: 260px;
+  left: -250px;
+}
+
+.authRouteTwo {
+  right: -280px;
+  bottom: 110px;
+  transform: rotate(24deg);
+}
+
+.authBackgroundStamp {
+  position: absolute;
+  top: 230px;
+  right: 8%;
+  display: flex;
+  width: 115px;
+  height: 115px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid #b89a5a50;
+  border-radius: 50%;
+  color: #b89a5a65;
+  transform: rotate(13deg);
+}
+
+.authBackgroundStamp span {
+  font-family: Georgia, serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.authBackgroundStamp small {
+  font-size: 7px;
+  letter-spacing: .2em;
+}
+
+.authPassport {
+  position: relative;
+  width: 100%;
+  max-width: 490px;
+  margin: 48px auto 60px;
+  padding: 9px;
+  border: 1px solid #b89a5a;
+  border-radius: 8px;
+  background: var(--auth-navy);
+  box-shadow: 0 20px 55px #172a4525;
+}
+
+.authPassport::before {
+  position: absolute;
+  inset: 5px;
+  border: 1px solid #b89a5a55;
+  border-radius: 5px;
+  content: "";
+  pointer-events: none;
+}
+
+.authPassportInner {
+  position: relative;
+  padding: 25px 34px 20px;
+  border: 1px solid #b89a5a65;
+  border-radius: 4px;
+  background:
+    radial-gradient(circle at 50% 30%, #ffffff12, transparent 42%),
+    var(--auth-navy);
+  color: var(--auth-ivory);
+}
+
+.authPassportTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--auth-gold);
+}
+
+.authPassportLabel {
+  font-family: Georgia, serif;
+  font-size: 8px;
+  letter-spacing: .19em;
+}
+
+.authPassportEmblem {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  margin: 22px 0 18px;
+  color: var(--auth-gold);
+}
+
+.authEmblemCircle {
+  display: grid;
+  width: 62px;
+  height: 62px;
+  place-items: center;
+  border: 1px solid var(--auth-gold);
+  border-radius: 50%;
+  box-shadow: 0 0 0 5px #b89a5a12, inset 0 0 0 4px #b89a5a12;
+}
+
+.authPassportEmblem > span {
+  font-family: Georgia, serif;
+  font-size: 7px;
+  letter-spacing: .2em;
+}
+
+.authEyebrow {
+  margin: 0 0 9px;
+  color: var(--auth-gold);
+  text-align: center;
+  font-family: Georgia, serif;
+  font-size: 9px;
+  letter-spacing: .22em;
+}
+
+.authTitle {
+  margin: 0;
+  color: #fffaf0;
+  text-align: center;
+  font-size: clamp(19px, 4vw, 23px);
+  font-weight: 600;
+  letter-spacing: .06em;
+  line-height: 1.6;
+}
+
+.authDescription {
+  margin: 8px 0 0;
+  color: #d4d0c5;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.9;
+}
+
+.authGoldDivider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 23px 0;
+  color: var(--auth-gold);
+}
+
+.authGoldDivider span {
+  width: 65px;
+  border-top: 1px solid #b89a5a70;
+}
+
+.authFormHeading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.authFormHeadingNumber {
+  display: grid;
+  width: 35px;
+  height: 35px;
+  place-items: center;
+  border: 1px solid var(--auth-gold);
+  border-radius: 50%;
+  color: var(--auth-gold);
+  font-family: Georgia, serif;
+  font-size: 12px;
+}
+
+.authFormHeading h2 {
+  margin: 0 0 4px;
+  color: #fffaf0;
+  font-size: 15px;
+  letter-spacing: .08em;
+}
+
+.authFormHeading p {
+  margin: 0;
+  color: #b9b5aa;
+  font-family: Georgia, serif;
+  font-size: 8px;
+  letter-spacing: .16em;
+}
+
+.authField {
+  margin-bottom: 17px;
+}
+
+.authField label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #f5f0e5;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+}
+
+.authFieldNumber {
+  color: var(--auth-gold);
+  font-family: Georgia, serif;
+  font-size: 10px;
+}
+
+.authField input {
+  width: 100%;
+  min-height: 45px;
+  padding: 12px 14px;
+  border: 1px solid #b89a5a75;
+  border-radius: 3px;
+  outline: none;
+  background: #fffeFA;
+  color: var(--auth-navy);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.authField input::placeholder {
+  color: #aaa69c;
+}
+
+.authField input:focus {
+  border-color: var(--auth-gold);
+  box-shadow: 0 0 0 3px #b89a5a25;
+}
+
+.authHelp {
+  margin: 6px 0 0;
+  color: #c5beae;
+  font-size: 10px;
+}
+
+.authSubmit {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 23px;
+  border: 1px solid var(--auth-gold);
+  border-radius: 3px;
+  background: var(--auth-gold);
+  color: var(--auth-navy);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  cursor: pointer;
+  transition: background .2s, color .2s, transform .2s;
+}
+
+.authSubmit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: #d0b477;
+}
+
+.authSubmit:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.authError,
+.authNotice {
+  margin: 0 0 13px;
+  padding: 10px 12px;
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.authError {
+  border: 1px solid #d89a9a;
+  background: #fff0ed;
+  color: #9e3d42;
+}
+
+.authNotice {
+  border: 1px solid #8db99e;
+  background: #edf7ef;
+  color: #386b4c;
+}
+
+.authSwitch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 21px;
+  color: #d4d0c5;
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.authSwitch a {
+  color: var(--auth-gold);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.authPassportBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 25px;
+  padding-top: 13px;
+  border-top: 1px solid #b89a5a50;
+  color: #b89a5a;
+  font-family: Georgia, serif;
+  font-size: 7px;
+  letter-spacing: .12em;
+}
+
+.authFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  padding: 0 0 25px;
+  color: #9b968b;
+  font-family: Georgia, serif;
+  font-size: 8px;
+  letter-spacing: .15em;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .authPage {
+    padding: 0 4%;
+  }
+
+  .authHeader {
+    height: 62px;
+  }
+
+  .authBrand {
+    font-size: 14px;
+  }
+
+  .authHeaderTag {
+    max-width: 125px;
+    font-size: 7px;
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  .authPassport {
+    max-width: 430px;
+    margin: 30px auto 40px;
+  }
+
+  .authPassportInner {
+    padding: 22px 20px 18px;
+  }
+
+  .authBackgroundStamp {
+    top: 150px;
+    right: -35px;
+    transform: scale(.7) rotate(13deg);
+  }
+
+  .authFooter {
+    font-size: 7px;
+  }
+}

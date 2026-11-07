@@ -66,6 +66,17 @@ export function parseActualTotal(value: string): number | null {
   return amount;
 }
 
+export const artistGenres = [
+  "J-POP",
+  "ロック・バンド",
+  "アイドル",
+  "K-POP",
+  "ダンス＆ボーカル",
+  "ヒップホップ・R&B",
+  "アニソン・声優",
+  "その他",
+];
+
 export type SavedTicket = {
   id: number;
   oshi: string;
@@ -75,6 +86,7 @@ export type SavedTicket = {
   date: string;
   color: string;
   memory: string;
+  outfit?: { genre: string; details: string };
   setlist?: string[];
   setlistFmId?: string;
   setlistSource?: string;

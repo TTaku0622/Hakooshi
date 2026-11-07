@@ -5,7 +5,7 @@ import { Globe2, Ship } from "lucide-react";
 import { PassportFrame, TravelIcon, travelModeNames, type TravelMode } from "./passport-spread";
 import { dateMonth, stayFacts } from "./stay-insights";
 import { ferryFacts, type RailwayFact } from "./travel-data";
-import { yen, type TourismData, type TripStatus } from "./trip-data";
+import { artistGenres, yen, type SavedTicket, type TourismData, type TripStatus } from "./trip-data";
 
 function PassportSetlist({ songs, source }: { songs: string[]; source?: string }) {
   const areaRef = useRef<HTMLDivElement>(null);
@@ -66,7 +66,7 @@ function PassportSetlist({ songs, source }: { songs: string[]; source?: string }
 
 export type PassportNotesProps = {
   destination: string; color: string; date: string; status: TripStatus; data: TourismData | null;
-  actualTotal: number | null; memory: string; setlist: string[]; setlistSource?: string; travelMode: TravelMode; railway?: RailwayFact; ferryRoute: string;
+  actualTotal: number | null; memory: string; outfit?: SavedTicket["outfit"]; setlist: string[]; setlistSource?: string; travelMode: TravelMode; railway?: RailwayFact; ferryRoute: string;
 };
 
 // 03・04 ページの見開き（PNG 保存用）
@@ -78,7 +78,7 @@ export function PassportNotes({ pageRef, ...props }: PassportNotesProps & { page
 }
 
 // 03 ページ：旅先の宿泊データ
-export function DestinationNotesPage({ destination, date, data }: PassportNotesProps) {
+export function DestinationNotesPage({ destination, date, data, outfit }: PassportNotesProps) {
   const facts = stayFacts(destination, data?.year ?? 2024, dateMonth(date));
   return <div className="passportPage passportDataPage">
       <div className="passportPageHeading"><span>DESTINATION NOTES / 旅先の横顔</span><b>03</b></div>
@@ -87,6 +87,15 @@ export function DestinationNotesPage({ destination, date, data }: PassportNotesP
       <p className="passportDataSource">出典：Project LINKS 観光統計データ（2025年度）を加工</p>
       <div className="passportStayFact"><span>{facts.year}年の月別客室稼働率</span><div className="passportMonthChart">{facts.months.map((row) => <div key={row.month} className={dateMonth(date) === row.month ? "active" : ""}><span><i style={{ height: `${row.occupancy ?? 0}%` }} /></span><small>{row.month}</small></div>)}</div><b>{facts.selected ? `${facts.selected.month}月：${facts.selected.occupancy === null ? "データなし" : `${facts.selected.occupancy.toFixed(1)}%`}` : `最も高かった月：${facts.peakMonths.map((m) => `${m}月`).join("・")}`}</b></div>
       <p className="passportDataSource">出典：観光庁 宿泊旅行統計調査・{facts.year}年確定値。県全体の過去の月平均で、現在の空室や会場の混雑予測ではありません。{destination === "石川県" && "石川県は一部地域が調査対象外。"}</p>
+      {outfit && (
+        <section className="passportOutfit" aria-label="服装">
+          <strong>OUTFIT / 服装</strong>
+          {outfit.genre && (
+            <span>{artistGenres.includes(outfit.genre) ? "アーティストのジャンル" : "以前の服装分類"} · {outfit.genre}</span>
+          )}
+          {outfit.details && <p>{outfit.details}</p>}
+        </section>
+      )}
       <div className="passportPageFoot"><span>KNOW A LITTLE MORE, TRAVEL A LITTLE DEEPER.</span><span>03</span></div>
     </div>;
 }

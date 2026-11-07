@@ -832,6 +832,16 @@ html, body {
 .passportOwnCost > span { font-size: 7px; color: #9a967c; }
 .passportOwnCost > strong { font: 25px Georgia,serif; }
 .passportOwnCost > small { font-size: 7px; color: #9a967c; }
+.passportDataPage:has(.passportOutfit) h2 { margin: 8px 0 6px; font-size: 21px; }
+.passportDataPage:has(.passportOutfit) .passportGuestCount { gap: 2px; padding-bottom: 6px; }
+.passportDataPage:has(.passportOutfit) .passportGuestCount > strong { font-size: 24px; }
+.passportDataPage:has(.passportOutfit) .passportDataSource { margin: 3px 0 6px; line-height: 1.4; }
+.passportDataPage:has(.passportOutfit) .passportMonthChart { height: 40px; margin-top: 5px; }
+.passportDataPage:has(.passportOutfit) .passportMonthChart span { height: 29px; }
+.passportDataPage:has(.passportOutfit) .passportStayFact > b { margin-top: 4px; }
+.passportOutfit { border: 1px solid #beb28c75; background: #fbf6e9; padding: 8px 10px; font-size: 9px; line-height: 1.45; overflow-wrap: anywhere; }
+.passportOutfit strong, .passportOutfit span { display: block; color: #697758; }
+.passportOutfit p { margin: 3px 0 0; }
 .passportNotesMemory { font-size: 10px; line-height: 1.7; overflow-wrap: anywhere; }
 .passportSetlist { margin: 9px 0; padding: 8px 10px; border: 1px solid #beb28c75; background: #fbf6e9; }
 .passportSetlistHeading { display: flex; justify-content: space-between; gap: 8px; color: #697758; font-size: 9px; }

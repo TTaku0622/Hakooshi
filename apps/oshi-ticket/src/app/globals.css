@@ -47,8 +47,8 @@ html, body {
 .hero h1 span { color: #8875bd; }
 .hero p { color: #89838e; font-size: 13px; line-height: 2; }
 .workspace {
-  max-width: 1120px; margin: 0 auto 70px;
-  display: grid; grid-template-columns: minmax(300px, .85fr) minmax(440px, 1.15fr);
+  max-width: 1320px; margin: 0 auto 70px;
+  display: grid; grid-template-columns: minmax(280px, .65fr) minmax(0, 1.35fr);
   gap: 28px; align-items: start;
 }
 .formPanel, .previewPanel {
@@ -82,55 +82,110 @@ html, body {
 }
 .colorButton:hover { transform: scale(1.12); }
 .colorSelected { box-shadow: 0 0 0 2px #62528e; transform: scale(1.12); }
+.destinationColorHint {
+  display: flex; align-items: center; gap: 6px;
+  margin: 8px 0 0; color: #797181; font-size: 10px; line-height: 1.6;
+}
+.destinationColorHint > span {
+  width: 11px; height: 11px; flex-shrink: 0; border-radius: 50%;
+  border: 1px solid #00000014;
+}
 .ticketStage {
-  background: #f5f2f8; border: 1px dashed #e1d9ed; border-radius: 14px;
-  padding: 34px 18px; display: flex; justify-content: center; overflow: hidden;
+  padding: 24px 10px; border: 1px dashed #ded7e9; border-radius: 14px;
+  background: #f5f2f8; display: flex; justify-content: center;
+}
+.ticketViewport {
+  position: relative; width: 100%; max-width: 800px; aspect-ratio: 5 / 2;
 }
 .ticket {
-  width: 100%; max-width: 520px; min-height: 290px; display: flex;
-  background: #fffdf9; border-radius: 9px; overflow: hidden;
-  box-shadow: 0 12px 30px #3a2c501c; color: #363044;
+  position: absolute; top: 0; left: 0; width: 800px; height: 320px;
+  padding: 8px; transform-origin: top left;
+  color: #182235; font-family: Arial, "Noto Sans JP", sans-serif;
 }
-.ticketMain { flex: 1; min-width: 0; padding: 21px 22px 15px; }
-.ticketTop { display: flex; justify-content: space-between; font-size: 8px; letter-spacing: .15em; color: #948b9c; font-weight: 800; }
-.ticketTitle { font-family: Georgia, serif; font-size: clamp(18px, 2.5vw, 25px); letter-spacing: .09em; margin-top: 17px; }
-.ticketSubtitle { font-size: 7px; letter-spacing: .22em; color: #a69eaa; margin-top: 4px; }
-.route { display: flex; align-items: center; gap: 12px; margin: 21px 0 17px; }
-.route > div:first-child, .routeDestination { display: flex; flex-direction: column; min-width: 60px; }
-.routeLabel { color: #aaa2ae; font-size: 7px; letter-spacing: .15em; }
-.route strong { font-family: Georgia, serif; font-size: 21px; margin: 2px 0; }
-.route small { font-size: 8px; color: #99919e; }
-.routeLine { flex: 1; display: flex; align-items: center; gap: 5px; color: #a48ae8; }
-.routeLine div { flex: 1; border-top: 1px dashed #c9bfd9; }
-.routeDestination { text-align: right; }
-.ticketInfo {
-  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
-  padding: 11px 0; border-top: 1px solid #eee9e4; border-bottom: 1px solid #eee9e4;
+.ticketPaper {
+  --ticket-stub-width: 208px;
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) var(--ticket-stub-width);
+  grid-template-rows: 32px minmax(0, 1fr); height: 100%;
+  border-radius: 13px; overflow: hidden;
+  box-shadow: 0 5px 10px #22243b26;
 }
-.ticketInfo div { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
-.ticketInfo span { color: #a49ca8; font-size: 6px; letter-spacing: .1em; }
-.ticketInfo strong { font-size: 9px; overflow-wrap: anywhere; }
-.patternArea { display: flex; align-items: center; gap: 20px; padding: 16px 0 12px; }
-.patternSvg { width: 128px; height: 128px; flex-shrink: 0; overflow: visible; }
-.memoryText { min-width: 0; flex: 1; }
-.memoryText span { font-size: 6px; letter-spacing: .13em; color: #a69eaa; }
-.memoryText p { font-size: 10px; line-height: 1.7; overflow-wrap: anywhere; margin: 7px 0; }
-.memoryText small { color: #b0a8b3; font-size: 6px; letter-spacing: .13em; }
-.ticketFooter {
-  display: flex; justify-content: space-between; border-top: 1px solid #eee9e4;
-  padding-top: 9px; color: #aaa2ae; font-size: 6px; letter-spacing: .14em;
+.boardingHeader {
+  grid-column: 1 / -1; display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ticket-stub-width);
 }
-.ticketStub {
-  width: 45px; flex-shrink: 0; display: flex; align-items: center;
-  justify-content: space-around; flex-direction: column; color: white;
-  padding: 13px 0; overflow: hidden;
+.boardingHeaderMain, .boardingHeaderStub {
+  display: flex; align-items: center; gap: 13px; padding: 0 12px;
 }
-.stubVertical {
-  writing-mode: vertical-rl; font-size: 7px; letter-spacing: .18em;
-  white-space: nowrap; opacity: .9;
+.boardingHeaderMain > strong { font-size: 14px; letter-spacing: .025em; }
+.boardingBrand { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; letter-spacing: .04em; }
+.boardingHeaderNote { margin-left: auto; font-size: 6px; letter-spacing: .06em; }
+.boardingHeaderStub {
+  justify-content: space-between; border-left: 1px dashed #ffffff99;
+  font-size: 11px; letter-spacing: .04em;
 }
-.stubStar { font-size: 18px; }
-.stubDate { writing-mode: vertical-rl; font-size: 7px; letter-spacing: .08em; }
+.boardingRail {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-direction: column; padding: 16px 0 12px;
+}
+.boardingRail > span { writing-mode: vertical-rl; font-size: 8px; font-weight: 700; letter-spacing: .18em; }
+.boardingMain {
+  min-width: 0; padding: 12px 16px;
+  background: #ffffffc7;
+  display: grid; grid-template-rows: 12px 46px 36px 44px 66px 10px;
+  align-content: space-between; gap: 5px;
+}
+.boardingTopline {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 8px; letter-spacing: .07em; font-weight: 700; color: #405067;
+}
+.boardingField { display: flex; flex-direction: column; min-width: 0; gap: 3px; }
+.boardingField > span { font-size: 8px; font-weight: 600; letter-spacing: .055em; color: #435167; }
+.boardingField > strong { overflow-wrap: anywhere; }
+.boardingIdentity { display: grid; grid-template-columns: minmax(0, 1fr) 100px; gap: 12px; }
+.boardingIdentity strong {
+  font-size: 17px; line-height: 1.05;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
+.boardingNumber { text-align: right; }
+.boardingNumber strong { font-family: "Courier New", monospace; font-size: 18px; white-space: nowrap; }
+.boardingEvent strong { font-size: 12px; line-height: 1.1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.boardingRoute { display: flex; align-items: center; gap: 15px; }
+.boardingRoute > div:not(.boardingFlightLine) { display: flex; flex-direction: column; gap: 2px; }
+.boardingRoute > div:last-child { text-align: right; }
+.boardingRoute span { font-size: 7px; font-weight: 700; letter-spacing: .12em; color: #435167; }
+.boardingRoute strong { font-size: 28px; line-height: 1; letter-spacing: .04em; }
+.boardingFlightLine { display: flex; align-items: center; flex: 1; gap: 9px; color: #405067; }
+.boardingFlightLine i { flex: 1; border-top: 1px dashed #40506780; }
+.boardingDetails { display: grid; grid-template-columns: 108px minmax(0, 1fr) 94px; align-items: start; gap: 12px; }
+.boardingDate strong { font-size: 14px; font-family: "Courier New", monospace; letter-spacing: -.04em; }
+.boardingMemory p { margin: 0; font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; }
+.boardingMaps { height: 66px; display: flex; align-items: center; flex-direction: column; }
+.boardingMaps svg { height: 55px; width: 90px; }
+.boardingMaps small { font-size: 6px; color: #435167; letter-spacing: .12em; }
+.boardingPhoto { height: 62px; border-radius: 4px; overflow: hidden; }
+.boardingPhoto img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.boardingFootnote { display: flex; justify-content: space-between; font-size: 6px; font-weight: 600; letter-spacing: .04em; color: #435167; }
+.boardingStub {
+  min-width: 0; padding: 12px 13px; border-left: 1px dashed #40506780;
+  background: #ffffffb8; display: grid;
+  grid-template-rows: 10px 36px 40px 34px 26px 34px 14px;
+  align-content: space-between; gap: 4px;
+}
+.boardingStub .boardingTopline { font-size: 7px; }
+.boardingStub .boardingField { gap: 2px; }
+.boardingStub .boardingField > span { font-size: 7px; }
+.stubIdentity strong { font-size: 12px; line-height: 1.1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.stubEvent strong { font-size: 10px; line-height: 1.1; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.stubRoute { display: flex; flex-direction: column; justify-content: center; gap: 5px; }
+.stubRoute > div { display: flex; align-items: baseline; gap: 8px; }
+.stubRoute span { width: 27px; font-size: 7px; font-weight: 600; color: #435167; }
+.stubRoute strong { font-size: 11px; }
+.stubDateRow { display: flex; align-items: center; justify-content: space-between; }
+.stubDateRow strong { font-family: "Courier New", monospace; font-size: 11px; }
+.stubBarcode { display: flex; flex-direction: column; gap: 2px; }
+.memoryBarcode { display: block; width: 100%; height: 25px; color: #182235; }
+.stubBarcode small { font-family: "Courier New", monospace; font-size: 6px; letter-spacing: .12em; }
+.stubMessage { text-align: center; font-size: 10px; font-weight: 800; letter-spacing: .045em; }
 .downloadButton {
   width: 100%; margin-top: 20px; padding: 15px; border: 0; border-radius: 10px;
   display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -154,13 +209,6 @@ html, body {
   .headerTag { font-size: 8px; }
   .formPanel, .previewPanel { padding: 20px 15px; }
   .ticketStage { padding: 20px 8px; }
-  .ticketMain { padding: 16px 13px 12px; }
-  .ticketStub { width: 36px; }
-  .route { gap: 7px; }
-  .route strong { font-size: 18px; }
-  .ticketInfo { gap: 5px; }
-  .ticketInfo strong { font-size: 8px; }
-  .patternSvg { width: 90px; height: 90px; }
 }
 
 /* マイコレクション */
@@ -425,16 +473,94 @@ html, body {
   font-size: 11px;
   cursor: pointer;
 }
-.ticketPhotoArea {
-  margin: 14px 0 4px;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 7px;
-  background: #f3eff6;
-}
-.ticketPhotoArea img {
-  display: block;
-  width: 100%;
-  max-height: 180px;
-  object-fit: cover;
+
+/* Trip preparation and post-trip recording */
+.tripFields { min-width: 0; margin: 0; padding: 0; border: 0; }
+.tripFields:disabled { opacity: .7; }
+.requiredMark { color: #8875bd; margin-left: 5px; font-size: 9px; font-weight: 500; }
+.fieldHint { margin: 7px 0 0; font-size: 10px; line-height: 1.7; color: #817888; }
+.tripPhase, .ticketTabs, .collectionFilters { display: flex; gap: 5px; }
+.tripPhase { margin-bottom: 24px; padding: 4px; background: #f1edf7; border-radius: 10px; }
+.tripPhase button, .ticketTabs button, .collectionFilters button { border: 0; border-radius: 7px; padding: 10px; font: inherit; font-size: 11px; cursor: pointer; color: #817888; background: transparent; }
+.tripPhase button { flex: 1; }
+.tripPhase button[aria-pressed="true"], .ticketTabs button[aria-selected="true"], .collectionFilters button[aria-pressed="true"] { color: #5c497e; background: #fff; box-shadow: 0 2px 6px #35204e0d; font-weight: 700; }
+.ticketTabs { background: #f4f1f8; border-radius: 9px; padding: 4px; margin-bottom: 18px; }
+.ticketTabs button { flex: 1; font-size: 10px; }
+.ticketExportOnly { position: fixed; top: 0; left: -12000px; width: 800px; pointer-events: none; }
+.artistSearchRow { display: flex; gap: 7px; }
+.artistSearchRow input { min-width: 0; }
+.artistSearchRow > button { display: flex; gap: 4px; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid #dcd3ea; border-radius: 8px; padding: 0 10px; color: #695588; background: #f4effb; font-size: 11px; cursor: pointer; }
+.artistSearchRow > button:disabled { opacity: .5; cursor: default; }
+.artistResults { margin-top: 7px; padding: 5px; background: #fcfaff; border: 1px solid #e8e0f1; border-radius: 9px; }
+.artistResults > button { width: 100%; display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 10px; border: 0; background: transparent; border-radius: 5px; color: #3e334b; cursor: pointer; }
+.artistResults > button:hover, .artistResults > button:focus-visible { background: #eee6f8; }
+.artistResults strong { font-size: 12px; overflow-wrap: anywhere; }
+.artistResults span, .artistResults > small { font-size: 9px; color: #91849e; }
+.artistResults > small { display: block; padding: 5px 10px; }
+.editingBanner { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; padding: 10px; margin-bottom: 15px; background: #f3f0fa; border-radius: 8px; font-size: 11px; color: #76618e; }
+.editingBanner button { margin-left: auto; border: 0; background: transparent; color: #76618e; text-decoration: underline; cursor: pointer; font-size: 10px; }
+.beforeTripNote { padding: 14px; background: #f6f3fa; color: #8c7d9c; font-size: 11px; line-height: 1.9; border-radius: 10px; }
+.afterTripFields { border-top: 1px solid #e9e1ef; padding-top: 8px; margin-top: 26px; }
+.afterTripFields h3 { margin: 13px 0 20px; color: #79618f; font-size: 13px; }
+.benchmarkSummary { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 15px; margin-top: 15px; border: 1px solid #e5ddec; border-radius: 10px; background: #fcfaff; }
+.benchmarkSummary > div { display: flex; flex-direction: column; gap: 4px; }
+.benchmarkSummary span { font-size: 10px; color: #877a94; }
+.benchmarkSummary strong { font-size: 21px; color: #5a4677; }
+.benchmarkSummary strong small { font-size: 9px; font-weight: 400; }
+.benchmarkSummary button { flex-shrink: 0; display: flex; align-items: center; gap: 4px; border: 0; padding: 7px; background: transparent; color: #8266a1; font-size: 10px; cursor: pointer; }
+.dataSourceNote { font-size: 9px; color: #9c92a4; line-height: 1.8; margin: 10px 0 16px; }
+.dataSourceNote a { color: #847093; }
+.saveNotice { padding: 12px; border-radius: 8px; font-size: 12px; line-height: 1.8; }
+.saveNotice.success { background: #edf7f1; color: #41765d; }
+.saveNotice.error, .formError { background: #fff2f3; color: #a65263; }
+.formError { padding: 10px; font-size: 11px; line-height: 1.8; border-radius: 7px; }
+.collectionStorageNote { font-size: 10px; color: #95899f; line-height: 1.8; }
+.collectionFilters { margin: 12px 0 18px; padding: 3px; background: #f6f3f9; border-radius: 9px; }
+.collectionFilters button { flex: 1; padding: 8px 5px; font-size: 10px; }
+.collectionOpen { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.tripBadge { display: inline-flex; align-self: flex-start; width: fit-content; padding: 4px 8px; border-radius: 20px; font-size: 9px; font-weight: 700; letter-spacing: .04em; }
+.tripBadge.planned { background: #ede5f7; color: #7c5b9e; }
+.tripBadge.completed { background: #e5f2e9; color: #50765c; }
+.collectionCardInfo .tripBadge { color: #7c5b9e; font-size: 9px; }
+.collectionCardInfo .tripBadge.completed { color: #50765c; }
+.newTripButton { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 18px; padding: 12px; border: 1px dashed #d6c8e5; border-radius: 9px; color: #8c739e; background: transparent; font-size: 11px; cursor: pointer; }
+.ticketModal { max-width: 840px; }
+.modalDismissButton { border: 0; background: transparent; color: #95889f; padding: 12px; margin-top: 8px; font-size: 11px; cursor: pointer; }
+
+/* Reverse side: source averages and the traveller's own record */
+.reverseHeader { display: flex; justify-content: space-between; align-items: center; padding: 0 14px; color: #26344b; background: #ffffffb8; font-size: 10px; letter-spacing: .06em; }
+.reverseHeader > span { display: flex; align-items: center; gap: 7px; font-weight: 800; }
+.reverseRail { display: flex; align-items: center; justify-content: space-between; flex-direction: column; padding: 17px 0; color: #26344b; background: #ffffff66; }
+.reverseRail > span { writing-mode: vertical-rl; font-size: 8px; letter-spacing: .13em; }
+.reverseMain { min-width: 0; padding: 13px 16px 10px; background: #ffffffd1; display: flex; flex-direction: column; gap: 9px; }
+.reverseDestination { display: flex; align-items: center; justify-content: space-between; }
+.reverseDestination > strong { font-size: 24px; }
+.reverseDestination > span { font-size: 9px; color: #5b6574; }
+.reverseAverage { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #26344b29; padding-bottom: 8px; }
+.reverseAverage > div { display: flex; flex-direction: column; gap: 2px; }
+.reverseAverage span { font-size: 9px; color: #526074; }
+.reverseAverage strong { font-family: "Courier New", monospace; font-size: 31px; letter-spacing: -.04em; }
+.reverseAverage > small { font-size: 8px; line-height: 1.7; text-align: right; color: #5b6574; }
+.reverseCostGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.reverseCostGrid > div { display: flex; flex-direction: column; gap: 3px; }
+.reverseCostGrid span { font-size: 8px; color: #526074; }
+.reverseCostGrid strong { font-family: "Courier New", monospace; font-size: 15px; }
+.reverseDefinition { margin: 0; color: #667181; font-size: 7px; line-height: 1.7; }
+.reverseSource { margin-top: auto; color: #667181; font-size: 6px; }
+.reverseLoading { display: grid; flex: 1; place-items: center; text-align: center; font-size: 13px; color: #697386; }
+.reverseStub { display: flex; flex-direction: column; min-width: 0; gap: 8px; padding: 12px 13px; border-left: 1px dashed #40506780; background: #ffffffbd; }
+.reverseActual { display: flex; flex-direction: column; gap: 6px; }
+.reverseActual > span { font-size: 7px; font-weight: 700; letter-spacing: .05em; color: #526074; }
+.reverseActual > strong { font-family: "Courier New", monospace; font-size: 21px; overflow-wrap: anywhere; }
+.reverseDifference { margin: 0; font-size: 8px; line-height: 1.7; color: #526074; }
+.reverseDifference > strong { font-size: 13px; color: #26344b; }
+.reverseMemory { margin: 0; white-space: pre-line; font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+.reverseGuests { margin-top: auto; display: flex; flex-direction: column; gap: 4px; }
+.reverseGuests > span { font-size: 7px; color: #526074; }
+.reverseGuests > strong { font-size: 13px; }
+.reverseStub > small { font-size: 6px; line-height: 1.6; color: #667181; }
+@media (max-width: 520px) {
+  .benchmarkSummary { padding: 12px 10px; }
+  .benchmarkSummary strong { font-size: 19px; }
+  .ticketTabs button { font-size: 8px; padding: 10px 5px; }
 }

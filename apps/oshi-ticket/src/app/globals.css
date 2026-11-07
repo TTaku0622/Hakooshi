@@ -670,6 +670,72 @@ html, body {
 .reverseTrendText { font-size: 9px; margin: 0; color: #796386; }
 @media (max-width: 560px) { .stayInsights { padding: 16px 12px; } .stayInsights h2 { font-size: 16px; } .occupancyChart { gap: 2px; } .occupancyChart small { font-size: 8px; } }
 
+.gpsPanel { margin: 30px 0; padding: 22px; background: #fff; border: 1px solid #e8e3dd; border-radius: 16px; }
+.gpsPanelHeading { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.gpsPanelIcon { display: grid; width: 36px; height: 36px; place-items: center; color: #718767; background: #edf2e8; border-radius: 10px; }
+.gpsPanelHeading h2 { margin: 0 0 5px; font-size: 16px; }
+.gpsPanelHeading p, .gpsPrivacyNote { margin: 0; color: #8b8490; font-size: 11px; line-height: 1.8; }
+.gpsSelectLabel { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 700; }
+.gpsSelect { width: 100%; max-width: 420px; padding: 10px 12px; color: #383342; background: #fcfbfd; border: 1px solid #e8e4ed; border-radius: 9px; font: inherit; font-size: 13px; }
+.gpsActions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.gpsActionButton { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 13px; color: #fff; background: #718767; border: 0; border-radius: 9px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.gpsActionButton.secondary { color: #645788; background: #f0ecf8; }
+.gpsActionButton.stop { color: #a64b4b; background: #f9eded; }
+.gpsActionButton:disabled { opacity: .48; cursor: not-allowed; }
+.gpsLiveStatus { display: flex; align-items: center; gap: 7px; margin: 10px 0; color: #607c53; font-size: 12px; font-weight: 700; }
+.gpsLiveStatus > span { width: 8px; height: 8px; background: #73a455; border-radius: 50%; box-shadow: 0 0 0 4px #73a45524; }
+.gpsLastPosition { margin: 8px 0; color: #64705e; font-size: 11px; }
+.gpsTrackingWarning { display: flex; align-items: flex-start; gap: 7px; margin: 10px 0; padding: 10px 12px; color: #8d632f; background: #fff7e9; border: 1px solid #f1dfbf; border-radius: 8px; font-size: 11px; line-height: 1.7; }
+.gpsTrackingWarning svg { flex: 0 0 auto; margin-top: 2px; }
+.gpsPrivacyNote { margin-top: 12px; }
+.gpsLimitNote { margin: 7px 0 0; color: #947552; font-size: 10px; line-height: 1.8; }
+.gpsNotice, .gpsError { margin: 12px 0; padding: 10px 12px; border-radius: 8px; font-size: 12px; line-height: 1.7; }
+.gpsNotice { color: #54744b; background: #f1f6ed; }
+.gpsError { color: #a34242; background: #fbefef; }
+.gpsHistory { margin-top: 22px; border-top: 1px solid #efebe5; padding-top: 16px; }
+.gpsHistory h3 { margin: 0 0 10px; font-size: 13px; }
+.gpsEmpty { color: #99929f; font-size: 12px; }
+.gpsRecord { padding: 10px 0; border-top: 1px solid #f0ede8; }
+.gpsRecordHeader { display: flex; align-items: center; gap: 8px; }
+.gpsRecordOpen { display: grid; flex: 1; gap: 4px; padding: 0; text-align: left; color: inherit; background: transparent; border: 0; cursor: pointer; }
+.gpsRecordOpen strong { font-size: 12px; }
+.gpsRecordOpen span, .gpsRecordOpen small { color: #89838e; font-size: 10px; }
+.gpsDeleteButton { display: grid; width: 34px; height: 34px; flex: 0 0 auto; place-items: center; color: #a77979; background: #faf4f4; border: 0; border-radius: 8px; cursor: pointer; }
+.gpsRoute { margin-top: 12px; padding: 10px; background: #f7f8f4; border: 1px solid #e8ebe2; border-radius: 12px; }
+.gpsMapViewport { position: relative; overflow: hidden; border-radius: 9px; background: #eaf3f6; }
+.gpsRoute svg { display: block; width: 100%; max-height: 360px; overflow: hidden; cursor: grab; touch-action: none; user-select: none; }
+.gpsRoute svg.isDragging { cursor: grabbing; }
+.gpsRoute .gpsMapWater { fill: #eaf3f6; stroke: #d7e5ea; }
+.gpsRoute image { pointer-events: none; }
+.gpsRoute polyline { fill: none; stroke: #718767; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.gpsRoute circle { stroke: #fff; stroke-width: 2; }
+.gpsRouteStart { fill: #8b75bd; }
+.gpsRouteEnd { fill: #d58362; }
+.gpsRouteLegend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 8px 2px 0; color: #77727d; font-size: 9px; }
+.gpsRouteLegend > span { display: inline-flex; align-items: center; gap: 5px; }
+.gpsRouteLegend i { display: inline-block; width: 8px; height: 8px; border: 1px solid #fff; border-radius: 50%; }
+.gpsRouteLegend i.gpsRouteStart { background: #8b75bd; }
+.gpsRouteLegend i.gpsRouteEnd { background: #d58362; }
+.gpsRouteLegend small { flex: 1 1 100%; color: #918a96; line-height: 1.6; }
+.gpsMapControls { position: absolute; top: 9px; right: 9px; display: grid; gap: 5px; justify-items: center; padding: 5px; background: #ffffffed; border: 1px solid #deded8; border-radius: 9px; box-shadow: 0 2px 8px #30303020; }
+.gpsMapControls button { display: grid; width: 32px; height: 32px; place-items: center; color: #4f5c50; background: white; border: 1px solid #e7e6df; border-radius: 6px; cursor: pointer; }
+.gpsMapControls button:hover:not(:disabled) { background: #f0f3eb; }
+.gpsMapControls button:disabled { color: #b7b7b1; cursor: not-allowed; }
+.gpsMapControls > span { color: #77727d; font-size: 8px; }
+.gpsMapHelp { margin: 7px 2px 0; color: #85808a; font-size: 9px; }
+.gpsMapAttribution { display: block; margin-top: 6px; color: #77727d; font-size: 9px; text-align: right; }
+.gpsTileError { margin: 8px 0 0; color: #a34242; font-size: 10px; line-height: 1.6; }
+.gpsRouteEmpty { margin: 12px 0 0; padding: 12px; color: #8a7a60; background: #fbf7ef; border-radius: 8px; font-size: 10px; line-height: 1.7; }
+.gpsRouteSummary { margin: 7px 0; color: #8a8490; font-size: 9px; }
+.gpsPointList { display: grid; gap: 8px; margin: 12px 0 0; padding: 12px 0 0 22px; border-top: 1px dashed #e7e1d8; }
+.gpsPointList li { display: grid; gap: 3px; color: #68616e; font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.gpsGapMarker { margin: 0 0 4px -22px; padding: 7px 9px; color: #966c36; background: #fff7e9; border-radius: 6px; font-size: 9px; }
+.gpsPointKind { color: #718767; font-weight: 700; }
+.gpsPointList time { color: #98919d; }
+.gpsPointList .verified { color: #54744b; }
+.gpsPointList .unverified { color: #a57958; }
+@media (max-width: 560px) { .gpsPanel { padding: 16px 13px; } .gpsActionButton { flex: 1 1 130px; } }
+
 /* A personal travel passport: two bound pages, with no boarding-pass perforation. */
 .passportStage { padding: 20px 8px; border: 1px solid #e5ded2; border-radius: 14px; background: #f3efe7; }
 .passportViewport { position: relative; width: 100%; max-width: 800px; aspect-ratio: 20 / 13; overflow: hidden; }

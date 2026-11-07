@@ -15,6 +15,7 @@ import { OshiColors } from "./oshi-colors";
 import { VenueSearch } from "./venue-search";
 import { NearbyMap } from "./nearby-map";
 import { LodgingInfo } from "./lodging-info";
+import { JourneyGps } from "./JourneyGps";
 import type { Venue } from "./map-utils";
 import { prefectureFlagColors } from "./prefecture-colors";
 import { prefectures, tourismYears, parseActualTotal, type SavedTicket, type TourismData, type TripType, type TripStatus, type TicketSide } from "./trip-data";
@@ -744,6 +745,8 @@ export default function TicketApp({ username }: { username: string }) {
           <LodgingInfo key={`${venue?.latitude}/${venue?.longitude}`} venue={venue} />
 
           <PassportProgress records={savedTickets} onOpen={(record) => { setSelectedTicket(record); setSelectedSide("front"); }} />
+
+          <JourneyGps tickets={savedTickets} />
 
           <div className="collectionSection">
 

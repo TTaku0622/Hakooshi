@@ -1371,6 +1371,362 @@ html, body {
   }
 }
 
+
+/* HAKOOSHI PASSPORT SITE THEME */
+:root {
+  --passport-navy: #172a45;
+  --passport-navy-light: #243c5b;
+  --passport-ivory: #f5f0e5;
+  --passport-paper: #fffcf5;
+  --passport-gold: #b89a5a;
+  --passport-gold-light: #d0b477;
+  --passport-ink: #26354a;
+  --passport-muted: #8c887e;
+  --passport-border: #d9cba9;
+}
+
+html,
+body {
+  background: var(--passport-ivory);
+  color: var(--passport-ink);
+}
+
+.page {
+  background:
+    radial-gradient(circle at 12% 15%, #b89a5a0d, transparent 28%),
+    var(--passport-ivory);
+  color: var(--passport-ink);
+}
+
+.header {
+  border-bottom: 1px solid var(--passport-gold);
+  color: var(--passport-navy);
+}
+
+.logo {
+  color: var(--passport-navy);
+  letter-spacing: .16em;
+}
+
+.logoIcon {
+  color: var(--passport-gold);
+  background: var(--passport-navy);
+  border: 1px solid var(--passport-gold);
+  border-radius: 4px;
+}
+
+.headerTag {
+  color: var(--passport-muted);
+  font-family: Georgia, serif;
+}
+
+.headerUser {
+  color: var(--passport-navy);
+}
+
+.logoutButton {
+  border: 1px solid var(--passport-gold);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--passport-navy);
+}
+
+.logoutButton:hover {
+  background: var(--passport-navy);
+  color: var(--passport-ivory);
+}
+
+.hero {
+  position: relative;
+}
+
+.eyebrow {
+  color: var(--passport-gold);
+  font-family: Georgia, serif;
+}
+
+.hero h1 {
+  color: var(--passport-navy);
+  font-weight: 600;
+  letter-spacing: .08em;
+}
+
+.hero h1 span {
+  color: var(--passport-gold);
+}
+
+.hero p {
+  color: var(--passport-muted);
+}
+
+.formPanel,
+.previewPanel {
+  border: 1px solid var(--passport-border);
+  border-radius: 5px;
+  background: var(--passport-paper);
+  box-shadow: 0 12px 32px #172a4510;
+}
+
+.sectionHeading {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #b89a5a55;
+}
+
+.step {
+  border: 1px solid var(--passport-gold);
+  border-radius: 50%;
+  background: var(--passport-navy);
+  color: var(--passport-gold);
+  font-family: Georgia, serif;
+}
+
+.sectionHeading h2 {
+  color: var(--passport-navy);
+  letter-spacing: .06em;
+}
+
+.sectionHeading p {
+  color: var(--passport-muted);
+  font-family: Georgia, serif;
+  letter-spacing: .1em;
+}
+
+.field label {
+  color: var(--passport-navy);
+}
+
+.field input,
+.field select,
+.field textarea {
+  border: 1px solid var(--passport-border);
+  border-radius: 3px;
+  background: #fffefa;
+  color: var(--passport-ink);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--passport-gold);
+  box-shadow: 0 0 0 3px #b89a5a20;
+}
+
+.selectWrap svg {
+  color: var(--passport-gold);
+}
+
+.destinationColorHint,
+.fieldHint {
+  color: var(--passport-muted);
+}
+
+.ticketStage {
+  border: 1px solid var(--passport-gold);
+  border-radius: 4px;
+  background:
+    radial-gradient(circle at center, #ffffff0b, transparent 65%),
+    var(--passport-navy);
+}
+
+.downloadButton,
+.authSubmit {
+  border: 1px solid var(--passport-gold);
+  border-radius: 3px;
+  background: var(--passport-gold);
+  color: var(--passport-navy);
+  letter-spacing: .07em;
+}
+
+.downloadButton:hover:not(:disabled) {
+  background: var(--passport-gold-light);
+  color: var(--passport-navy);
+}
+
+.collectionSaveButton {
+  border: 1px solid var(--passport-gold);
+  border-radius: 3px;
+  background: var(--passport-navy);
+  color: var(--passport-ivory);
+}
+
+.collectionSaveButton:hover:not(:disabled) {
+  background: var(--passport-navy-light);
+}
+
+.collectionSection {
+  border-top-color: var(--passport-gold);
+}
+
+.collectionHeading {
+  color: var(--passport-navy);
+}
+
+.collectionEyebrow {
+  color: var(--passport-gold);
+  font-family: Georgia, serif;
+  letter-spacing: .16em;
+}
+
+.collectionCount {
+  color: var(--passport-muted);
+  font-family: Georgia, serif;
+}
+
+.collectionStorageNote,
+.collectionEmpty,
+.note {
+  color: var(--passport-muted);
+}
+
+.collectionCard {
+  border: 1px solid var(--passport-border);
+  border-radius: 4px;
+  background: var(--passport-paper);
+  box-shadow: 0 6px 18px #172a450d;
+}
+
+.tripBadge {
+  border-radius: 2px;
+}
+
+.ticketTabs button[aria-selected="true"] {
+  border-color: var(--passport-gold);
+  background: var(--passport-navy);
+  color: var(--passport-ivory);
+}
+
+.newTripButton,
+.ticketModalCloseButton {
+  border: 1px solid var(--passport-gold);
+  border-radius: 3px;
+  background: var(--passport-navy);
+  color: var(--passport-ivory);
+}
+
+.newTripButton:hover,
+.ticketModalCloseButton:hover {
+  background: var(--passport-navy-light);
+}
+
+.ticketModal {
+  border: 1px solid var(--passport-gold);
+  background: var(--passport-ivory);
+  color: var(--passport-ink);
+}
+
+.footer {
+  border-top-color: var(--passport-gold);
+  color: var(--passport-muted);
+  font-family: Georgia, serif;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--passport-gold);
+  outline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .header {
+    border-bottom-color: var(--passport-gold);
+  }
+
+  .formPanel,
+  .previewPanel {
+    border-radius: 4px;
+  }
+}
+
+/* END HAKOOSHI PASSPORT SITE THEME */
+
+
+/* HAKOOSHI PASSPORT DETAIL COLORS */
+
+.editingBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--passport-gold);
+  border-radius: 3px;
+  background: #f5f0e5;
+  color: var(--passport-navy);
+}
+
+.editingBanner button {
+  color: var(--passport-navy);
+  text-decoration-color: var(--passport-gold);
+}
+
+.tripPhase {
+  border: 1px solid var(--passport-border);
+  border-radius: 4px;
+  background: #eee8da;
+}
+
+.tripPhase button {
+  border-radius: 3px;
+  color: #777263;
+}
+
+.tripPhase button[aria-pressed="true"] {
+  background: var(--passport-navy);
+  color: var(--passport-ivory);
+  box-shadow: 0 2px 6px #172a4518;
+}
+
+.ticketTabs {
+  border: 1px solid var(--passport-border);
+  border-radius: 4px;
+  background: #eee8da;
+}
+
+.ticketTabs button {
+  color: #777263;
+}
+
+.ticketTabs button[aria-selected="true"] {
+  border: 1px solid var(--passport-gold);
+  border-radius: 3px;
+  background: var(--passport-navy);
+  color: var(--passport-ivory);
+  box-shadow: none;
+}
+
+.artistSearchRow > button {
+  border: 1px solid var(--passport-gold);
+  border-radius: 3px;
+  background: var(--passport-navy);
+  color: var(--passport-ivory);
+}
+
+.artistSearchRow > button:hover:not(:disabled) {
+  background: var(--passport-navy-light);
+}
+
+.photoInput {
+  border-color: var(--passport-gold);
+  border-radius: 3px;
+  background: var(--passport-paper);
+  color: var(--passport-ink);
+}
+
+.photoHelp {
+  color: var(--passport-muted);
+}
+
+.requiredMark {
+  color: var(--passport-gold);
+}
+
+.collectionCardInfo span {
+  color: var(--passport-gold);
+}
+
+.collectionCardInfo small {
+  color: var(--passport-muted);
+}
+
+/* END HAKOOSHI PASSPORT DETAIL COLORS */
 .ticketSetlist {
   margin: 0;
   padding-inline-start: 1.6em;

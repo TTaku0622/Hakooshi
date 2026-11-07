@@ -8,6 +8,7 @@ import { PassportSpread, IdentityPage, VisaPage, PASSPORT_WIDTH, PASSPORT_HEIGHT
 import { PassportNotes, DestinationNotesPage, MyJourneyPage, type PassportNotesProps } from "./passport-notes";
 import { PassportBook } from "./passport-book";
 import { PassportProgress } from "./passport-progress";
+import { getEarnedJourneyBadges } from "./journey-badges";
 import { railways, ferryFacts } from "./travel-data";
 import { ArtistSearch } from "./artist-search";
 import { StayInsights } from "./stay-insights";
@@ -440,6 +441,8 @@ export default function TicketApp({ username }: { username: string }) {
       const ticket: SavedTicket = { ...snapshot, image, backImage };
 
       const updated = editingId === null ? [ticket, ...savedTickets] : savedTickets.map((item) => item.id === editingId ? ticket : item);
+      const previousBadgeIds = new Set(getEarnedJourneyBadges(savedTickets).map((badge) => badge.id));
+      const newlyEarnedBadges = getEarnedJourneyBadges(updated).filter((badge) => !previousBadgeIds.has(badge.id));
 
       localStorage.setItem("oshi-journey-collection", JSON.stringify(updated));
 
@@ -449,7 +452,8 @@ export default function TicketApp({ username }: { username: string }) {
 
       setPinnedBenchmark(benchmark);
 
-      setNotice({ type: "success", text: editingId !== null ? "訪問ページを更新しました。" : status === "planned" ? "遠征の予定を保存しました。帰ってきたら写真と実費を追記できます。" : "遠征の思い出を保存しました。" });
+      const savedMessage = editingId !== null ? "訪問ページを更新しました。" : status === "planned" ? "遠征の予定を保存しました。帰ってきたら写真と実費を追記できます。" : "遠征の思い出を保存しました。";
+      setNotice({ type: "success", text: newlyEarnedBadges.length ? `${savedMessage} バッジ獲得：${newlyEarnedBadges.map((badge) => `「${badge.name}」`).join("、")}` : savedMessage });
     } catch {
 
       setNotice({ type: "error", text: "保存できませんでした。ブラウザの保存容量を確認してください。" });

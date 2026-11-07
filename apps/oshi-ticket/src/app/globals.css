@@ -844,7 +844,24 @@ html, body {
 .prefectureStamps small { font-size: 5px; letter-spacing: .05em; margin-top: 4px; }
 .prefectureStamps button.collected { border: 2px double #829b73; color: #738b60; background: #f2f5e9; cursor: pointer; transform: rotate(-7deg); }
 .passportProgress > small { font-size: 9px; line-height: 1.8; color: #a0a38d; }
+.journeyBadges { margin-top: 24px; padding-top: 18px; border-top: 1px solid #e8eadf; }
+.journeyBadgesHeading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.journeyBadgesHeading h3 { display: flex; align-items: center; gap: 7px; margin: 0; color: #63795d; font-size: 14px; }
+.journeyBadgesHeading > span { color: #929783; font-size: 10px; }
+.journeyBadgeGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.journeyBadge { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 11px; border: 1px solid #e7e8e1; border-radius: 11px; background: #fafaf7; color: #a3a597; }
+.journeyBadge.earned { border-color: #d7dfca; background: linear-gradient(135deg, #f8faef, #fffdf6); color: #6d825f; }
+.journeyBadgeIcon { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #eeefe9; color: #aaa99d; }
+.journeyBadge.earned .journeyBadgeIcon { background: #e8efd9; color: #738a5f; box-shadow: inset 0 0 0 1px #dce5ce; }
+.journeyBadgeInfo { display: grid; min-width: 0; gap: 3px; }
+.journeyBadgeInfo strong { overflow-wrap: anywhere; color: #8d9082; font-size: 11px; }
+.journeyBadge.earned .journeyBadgeInfo strong { color: #5f7651; }
+.journeyBadgeInfo small { color: #a3a394; font-size: 9px; line-height: 1.5; }
+.journeyBadgeStatus, .journeyBadgeProgress { color: #9c9d91; font-size: 9px; }
+.journeyBadge.earned .journeyBadgeStatus { color: #70885d; font-weight: 700; }
+.passportProgress .journeyBadgeNote { display: block; margin-top: 11px; color: #999b8b; font-size: 9px; line-height: 1.8; }
 @media(max-width:560px) { .passportStage { padding: 12px 5px; } .prefectureStamps { grid-template-columns: repeat(6,minmax(0,1fr)); gap: 8px; } .passportProgress h2 { font-size: 16px; } }
+@media(max-width:420px) { .journeyBadgeGrid { grid-template-columns: 1fr; } }
 .lodgingInfo { border-top: 1px solid #e6e4d9; margin-top: 28px; padding-top: 25px; }
 .lodgingInfo h2 { display: flex; align-items: center; gap: 7px; font-size: 18px; color: #6c805f; margin: 9px 0; }
 .lodgingInfo > p { color: #969b88; font-size: 11px; line-height: 1.8; }

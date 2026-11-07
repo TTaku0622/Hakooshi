@@ -98,8 +98,14 @@ export async function endSession() {
 
 // ログイン中のユーザーを返す。未ログインなら /login へ移動する
 export async function getCurrentUser(): Promise<CurrentUser> {
+  const user = await getCurrentUserOrNull();
+  if (!user) redirect("/login");
+  return user;
+}
+
+export async function getCurrentUserOrNull(): Promise<CurrentUser | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (!token) redirect("/login");
+  if (!token) return null;
 
   // 有効期限の判定に現在時刻を使うので、リクエスト時に実行する
   await connection();
@@ -110,7 +116,5 @@ export async function getCurrentUser(): Promise<CurrentUser> {
        WHERE sessions.token_hash = ? AND sessions.expires_at > ?`
     )
     .get(hashToken(token), Date.now()) as CurrentUser | undefined;
-  if (!user) redirect("/login");
-
-  return { id: user.id, username: user.username };
+  return user ? { id: user.id, username: user.username } : null;
 }

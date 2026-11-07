@@ -564,3 +564,24 @@ html, body {
   .benchmarkSummary strong { font-size: 19px; }
   .ticketTabs button { font-size: 8px; padding: 10px 5px; }
 }
+
+/* ログイン・新規登録 */
+.authCard {
+  max-width: 420px; margin: 56px auto 70px;
+  background: #fff; border: 1px solid #eeeae5; border-radius: 18px;
+  padding: 32px 28px; box-shadow: 0 8px 30px #39304408;
+}
+.authCard h1 { font-size: 22px; letter-spacing: .04em; margin: 0 0 24px; text-align: center; }
+.authHelp { color: #aaa3ad; font-size: 11px; margin: 6px 0 0; }
+.authError, .authNotice { font-size: 12px; line-height: 1.6; border-radius: 9px; padding: 10px 12px; margin: 0 0 12px; }
+.authError { color: #b8434f; background: #fcecee; }
+.authNotice { color: #3f7d62; background: #e9f5ef; }
+.authSwitch { text-align: center; font-size: 12px; color: #89838e; margin: 20px 0 0; }
+.authSwitch a { color: #8875bd; font-weight: 700; }
+.headerUser { display: flex; align-items: center; gap: 12px; }
+.headerUser span { color: #99929f; font-size: 10px; letter-spacing: .16em; }
+.logoutButton {
+  display: flex; align-items: center; gap: 6px; border: 1px solid #e8e3dd; border-radius: 8px;
+  background: #fff; color: #6f6878; padding: 7px 11px; font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.logoutButton:hover { background: #f4f1f8; }

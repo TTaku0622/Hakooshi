@@ -34,3 +34,13 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## ログイン
+
+チケット画面（`/`）はログインしないと見られません。未ログインだと `/login` に移動します。
+
+- 最初に `/signup` でアカウントを作ります（ユーザーID・パスワード・ログイン用コード6桁）
+- ユーザーとセッションは `.local/auth.db`（SQLite、git 管理外）に保存します。Node.js 22.5 以降の標準モジュール `node:sqlite` を使うので、追加のパッケージはいりません
+- パスワードとログイン用コードは scrypt でハッシュ化して保存します
+- ログイン用コードは登録時に自分で決める固定の数字です。SMS や認証アプリのワンタイムコードではありません
+- DB はローカルファイルなので、サーバーレス環境（Amplify など）に公開するときは保存先を DynamoDB などに変える必要があります

@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { logout } from "./auth-actions";
 import { toPng } from "html-to-image";
 import { Download, MapPin, Sparkles, BookOpen, Bookmark, Trash2, Plus, Pencil, LogOut } from "lucide-react";
-import { PassportSpread, PASSPORT_WIDTH, PASSPORT_HEIGHT, travelModeNames, type TravelMode } from "./passport-spread";
-import { PassportNotes } from "./passport-notes";
+import { PassportSpread, IdentityPage, VisaPage, PASSPORT_WIDTH, PASSPORT_HEIGHT, travelModeNames, type PassportSpreadProps, type TravelMode } from "./passport-spread";
+import { PassportNotes, DestinationNotesPage, MyJourneyPage, type PassportNotesProps } from "./passport-notes";
+import { PassportBook } from "./passport-book";
 import { PassportProgress } from "./passport-progress";
 import { railways, ferryFacts } from "./travel-data";
 import { ArtistSearch } from "./artist-search";
@@ -558,6 +559,9 @@ export default function TicketApp({ username }: { username: string }) {
     }
   };
 
+  // パスポートの各ページに渡す内容（画面のめくれる本と、PNG 保存用の見開きで共通）
+  const spreadProps: PassportSpreadProps = { origin, destination, oshi, event, venueName: venue?.name, date, memory: status === "planned" ? "" : memory, photo: status === "completed" ? photo : "", color, seed, destinationPath, status, travelMode, ferryName: travelMode === "ferry" ? ferryRoute || "船旅" : undefined };
+  const notesProps: PassportNotesProps = { destination, color, date, status, data: benchmark, actualTotal: actualValue, memory, travelMode, railway: railways.find((r) => r.id === railwayId), ferryRoute };
 
   return (
     <main className="page">
@@ -712,12 +716,16 @@ export default function TicketApp({ username }: { username: string }) {
           <div className="ticketTabs" role="tablist" aria-label="パスポートのページ">{(["front", "back"] as const).map((side) =>
             <button type="button" role="tab" aria-selected={ticketSide === side} key={side} onClick={() => setTicketSide(side)}>{side === "front" ? "訪問ページ · VISAS" : "旅先ノート · NOTES"}</button>)}</div>
 
-          <div className={ticketSide !== "front" ? "ticketExportOnly" : ""} aria-hidden={ticketSide !== "front"} inert={ticketSide !== "front"}>
-            <PassportSpread pageRef={ticketRef} origin={origin} destination={destination} oshi={oshi} event={event} venueName={venue?.name} date={date} memory={status === "planned" ? "" : memory} photo={status === "completed" ? photo : ""} color={color} seed={seed} destinationPath={destinationPath} status={status} travelMode={travelMode} ferryName={travelMode === "ferry" ? ferryRoute || "船旅" : undefined} />
-          </div>
+          <PassportBook side={ticketSide} color={color} destination={destination} pages={[
+            <IdentityPage key="01" {...spreadProps} />, <VisaPage key="02" {...spreadProps} />,
+            <DestinationNotesPage key="03" {...notesProps} />, <MyJourneyPage key="04" {...notesProps} />]} />
 
-          <div className={ticketSide !== "back" ? "ticketExportOnly" : ""} aria-hidden={ticketSide !== "back"} inert={ticketSide !== "back"}>
-            <PassportNotes pageRef={backRef} destination={destination} color={color} date={date} status={status} data={benchmark} actualTotal={actualValue} memory={memory} travelMode={travelMode} railway={railways.find((r) => r.id === railwayId)} ferryRoute={ferryRoute} />
+          {/* PNG 保存用の見開き（画面の外に置く） */}
+          <div className="ticketExportOnly" aria-hidden inert>
+            <PassportSpread pageRef={ticketRef} {...spreadProps} />
+          </div>
+          <div className="ticketExportOnly" aria-hidden inert>
+            <PassportNotes pageRef={backRef} {...notesProps} />
           </div>
 
           <StayInsights key={`${destination}/${date}/${referenceYear}`} prefecture={destination} date={date} year={referenceYear} />

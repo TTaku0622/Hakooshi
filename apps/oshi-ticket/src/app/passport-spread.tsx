@@ -35,7 +35,7 @@ export function TravelIcon({ mode, size = 16 }: { mode: TravelMode; size?: numbe
 
 export type PassportSpreadProps = {
   origin: string; destination: string; oshi: string; event: string; date: string;
-  memory: string; photo: string; color: string; seed: number; destinationPath: string; status: TripStatus; venueName?: string; travelMode: TravelMode; ferryName?: string;
+  memory: string; photo: string; color: string; seed: number; destinationPath: string; status: TripStatus; venueName?: string; visitCount?: number; travelMode: TravelMode; ferryName?: string;
 };
 
 // 01・02 ページの見開き（PNG 保存用）
@@ -47,25 +47,82 @@ export function PassportSpread({ pageRef, ...props }: PassportSpreadProps & { pa
 }
 
 // 01 ページ：推しと旅の情報
-export function IdentityPage({ origin, destination, oshi, event, date, seed, venueName, travelMode }: PassportSpreadProps) {
-  return <div className="passportPage passportIdentity">
+export function visitTier(count: number) {
+  if (count >= 6) return "legend";
+  if (count === 5) return "fifth";
+  if (count === 4) return "fourth";
+  if (count === 3) return "third";
+  if (count === 2) return "second";
+  return count === 1 ? "first" : "unvisited";
+}
+
+function visitRankLabel(count: number) {
+  if (count >= 6) return "LEGENDARY";
+  if (count === 5) return "FIFTH VISIT";
+  if (count === 4) return "FOURTH VISIT";
+  if (count === 3) return "THIRD VISIT";
+  if (count === 2) return "SECOND VISIT";
+  return count === 1 ? "FIRST VISIT" : "";
+}
+
+function VisitSparkles({ count }: { count: number }) {
+  if (count < 1) return null;
+  const particles = Math.min(4 + Math.min(count, 6) * 3, 22);
+  const power = Math.min(count, 6);
+  const radius = 38 + power * 5;
+  return <span
+    className={`passportVisitSparkles ${visitTier(count)}`}
+    aria-hidden="true"
+    style={{ "--visit-power": power } as CSSProperties}
+  >
+    {Array.from({ length: particles }, (_, index) => {
+      const angle = (index / particles) * 360;
+      const distance = radius + (index % 3) * 7;
+      return <i
+        key={index}
+        style={{
+          transform: `rotate(${angle}deg) translateY(-${distance}px) rotate(-${angle}deg)`,
+          animationDelay: `${(index % 12) * 0.13}s`,
+          fontSize: `${12 + power * 0.9}px`,
+        }}
+      >✦</i>;
+    })}
+  </span>;
+}
+
+export function IdentityPage({ origin, destination, oshi, event, date, seed, venueName, travelMode, visitCount = 0 }: PassportSpreadProps) {
+  return <div className="passportPage passportIdentity" data-visit-count={visitCount > 0 ? visitCount : undefined} data-visit-tier={visitTier(visitCount)} style={{ "--visit-power": Math.min(visitCount, 6) } as CSSProperties}>
       <div className="passportBrand"><Globe2 size={23} /><span>OSHI PASSPORT<small>推し旅パスポート</small></span></div>
       <p className="passportKicker">EVERY JOURNEY BRINGS ME CLOSER TO YOU.</p>
       <div className="passportField passportArtist"><span>ARTIST / OSHI · 推しの名前</span><strong>{oshi || "推しの名前を入れてね"}</strong></div>
       <div className="passportField"><span>PURPOSE OF VISIT · イベント</span><strong>{event || "次のライブをここに"}</strong></div>
       <div className="passportRoute"><div><span>FROM</span><strong>{origin}</strong></div><TravelIcon mode={travelMode} size={22} /><div><span>TO</span><strong>{destination}</strong></div></div>
       <div className="passportField"><span>DATE OF JOURNEY · 公演日</span><strong>{date ? date.replaceAll("-", ".") : "日付を選択"}</strong></div>
-      <div className="passportField passportVenue"><span>VENUE · 会場</span><strong>{venueName || "会場はあとから追加できます"}</strong></div>
+      <div
+        className={`passportVenueAura ${visitTier(visitCount)}`}
+        style={{ "--visit-power": Math.min(visitCount, 6) } as CSSProperties}
+      >
+        <VisitSparkles count={visitCount} />
+        <div className="passportField passportVenue"><span>VENUE · 会場</span><strong>{venueName || "会場はあとから追加できます"}</strong></div>
+        {visitCount > 0 && <span className="passportVisitCount">{visitCount} {visitCount === 1 ? "VISIT" : "VISITS"} · {visitRankLabel(visitCount)}</span>}
+      </div>
       <div className="passportDocument"><span>PERSONAL MEMORY DOCUMENT</span><b>OJ&lt;{String(seed % 10000000).padStart(7, "0")}&lt;JPN</b></div>
     </div>;
 }
 
 // 02 ページ：訪問スタンプと思い出
-export function VisaPage({ destination, date, memory, photo, destinationPath, status, travelMode, ferryName }: PassportSpreadProps) {
-  return <div className="passportPage passportVisa">
+export function VisaPage({ destination, date, memory, photo, destinationPath, status, travelMode, ferryName, visitCount = 0 }: PassportSpreadProps) {
+  return <div className="passportPage passportVisa" data-visit-count={visitCount > 0 ? visitCount : undefined} data-visit-tier={visitTier(visitCount)} style={{ "--visit-power": Math.min(visitCount, 6) } as CSSProperties}>
       <div className="passportPageHeading"><span>VISAS / 訪問の記録</span><b>01</b></div>
-      <div className={`visitStamp ${status}`} style={{ color: prefectureFlagColors[destination] }}>
-        <span>{status === "planned" ? "NEXT DESTINATION" : "VISITED WITH MY OSHI"}</span><Globe2 size={25} /><strong>{destination}</strong><b>{date ? date.replaceAll("-", ".") : "COMING SOON"}</b><small>{status === "planned" ? "旅の予定" : "訪問の思い出"}</small>
+      <div
+        className={`passportStampAura ${visitTier(visitCount)}`}
+        style={{ "--visit-power": Math.min(visitCount, 6) } as CSSProperties}
+      >
+        <VisitSparkles count={visitCount} />
+        <div className={`visitStamp ${status}`} style={{ color: prefectureFlagColors[destination] }}>
+          <span>{status === "planned" ? "NEXT DESTINATION" : "VISITED WITH MY OSHI"}</span><Globe2 size={25} /><strong>{destination}</strong><b>{date ? date.replaceAll("-", ".") : "COMING SOON"}</b><small>{status === "planned" ? "旅の予定" : "訪問の思い出"}</small>
+          {visitCount > 0 && <em>{visitCount} {visitCount === 1 ? "VISIT" : "VISITS"}</em>}
+        </div>
       </div>
       {travelMode === "ferry" && ferryName && <div className={`ferryStamp ${status}`}><Ship size={22} /><span>SEA JOURNEY<small>{status === "planned" ? "船旅の予定" : "船旅の記録"}</small></span></div>}
       <div className="passportMemoryPhoto">{photo ? <img src={photo} alt="旅の思い出" /> : <><svg viewBox="0 0 58 88" aria-label={`${destination}の地図`} role="img"><path d={destinationPath} fill="currentColor" fillOpacity=".13" stroke="currentColor" strokeWidth=".6" fillRule="evenodd" /></svg><span>{status === "planned" ? "帰ってきたら、ここに思い出の一枚を。" : "この旅の写真を残そう。"}</span></>}</div>

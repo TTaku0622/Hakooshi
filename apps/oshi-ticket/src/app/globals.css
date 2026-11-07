@@ -1733,3 +1733,613 @@ a:focus-visible {
   list-style: decimal;
   overflow-wrap: anywhere;
 }
+
+/* HAKOOSHI PASSPORT VISIT EFFECTS */
+.passportVenueAura {
+  --visit-power: 0;
+  position: relative;
+  isolation: isolate;
+  padding: 9px 12px 7px;
+  margin: 0 -12px 8px;
+  border-radius: 12px;
+  transition: box-shadow .5s ease, background .5s ease, filter .5s ease;
+}
+
+.passportVenueAura .passportVenue {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 3px;
+}
+
+.passportVisitCount {
+  position: relative;
+  z-index: 4;
+  display: block;
+  color: #a17c37;
+  font-family: Georgia, serif;
+  font-size: 8px;
+  letter-spacing: .15em;
+  text-align: right;
+}
+
+.passportStampAura {
+  --visit-power: 0;
+  position: relative;
+  isolation: isolate;
+  width: 210px;
+  height: 210px;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  margin: 17px 0;
+  border-radius: 50%;
+  transition: filter .5s ease, background .5s ease;
+}
+
+.passportStampAura .visitStamp {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+}
+
+.visitStamp em {
+  font-family: Georgia, serif;
+  font-size: 8px;
+  font-style: normal;
+  letter-spacing: .13em;
+  color: #a17c37;
+}
+
+.passportVisitSparkles {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.passportVisitSparkles i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: block;
+  color: #c4a45e;
+  font-style: normal;
+  line-height: 1;
+  transform-origin: center;
+  text-shadow:
+    0 0 5px #d0b477cc,
+    0 0 12px #d0b47788,
+    0 0 22px #e9d49b66;
+  animation: passportVisitTwinkle 2.1s ease-in-out infinite;
+}
+
+.passportVenueAura.first,
+.passportStampAura.first {
+  background: radial-gradient(ellipse, #d0b47722 0%, transparent 76%);
+  box-shadow: 0 0 12px #b89a5a55, inset 0 0 10px #d0b47722;
+}
+
+.passportVenueAura.repeat,
+.passportStampAura.repeat {
+  background: radial-gradient(ellipse, #d0b47733 0%, transparent 76%);
+  box-shadow:
+    0 0 0 1px #b89a5a77,
+    0 0 19px #b89a5a66,
+    inset 0 0 13px #d0b47733;
+}
+
+.passportVenueAura.regular,
+.passportStampAura.regular {
+  background: radial-gradient(ellipse, #d0b47744 0%, transparent 78%);
+  box-shadow:
+    0 0 0 1px #c6a45eaa,
+    0 0 25px #b89a5a88,
+    0 0 48px #d0b47744,
+    inset 0 0 18px #d0b47744;
+}
+
+.passportVenueAura.legend,
+.passportStampAura.legend {
+  background: radial-gradient(ellipse, #e6c87855 0%, #d0b47722 48%, transparent 80%);
+  box-shadow:
+    0 0 0 1px #d6b66e,
+    0 0 28px #c6a45eaa,
+    0 0 55px #d0b47777,
+    0 0 85px #d0b47744,
+    inset 0 0 25px #e6c87855;
+}
+
+.passportVenueAura[data-visit-count],
+.passportStampAura[data-visit-count] {
+  filter: drop-shadow(0 0 calc(2px + var(--visit-power) * 0.7px) #d0b47788);
+}
+
+.passportStampAura::before,
+.passportVenueAura::before {
+  content: "";
+  position: absolute;
+  inset: calc(-4px - var(--visit-power) * 0.45px);
+  border: 1px solid #c6a45e99;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: .5;
+  box-shadow: 0 0 calc(5px + var(--visit-power) * 1.2px) #d0b47788;
+  animation: passportGoldenAura 3s ease-in-out infinite;
+}
+
+.passportStampAura::after,
+.passportVenueAura::after {
+  content: "";
+  position: absolute;
+  inset: calc(-9px - var(--visit-power) * 0.7px);
+  border: 1px solid #d0b47755;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: .25;
+  animation: passportGoldenAura 4s ease-in-out infinite reverse;
+}
+
+.passportVenueAura.first::before,
+.passportVenueAura.first::after,
+.passportStampAura.first::before,
+.passportStampAura.first::after {
+  opacity: .35;
+}
+
+.passportVenueAura.repeat::before,
+.passportStampAura.repeat::before {
+  opacity: .65;
+}
+
+.passportVenueAura.regular::before,
+.passportStampAura.regular::before,
+.passportVenueAura.legend::before,
+.passportStampAura.legend::before {
+  opacity: .9;
+}
+
+@keyframes passportVisitTwinkle {
+  0%, 100% {
+    opacity: .38;
+    filter: brightness(.9);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.8);
+  }
+}
+
+@keyframes passportGoldenAura {
+  0%, 100% {
+    opacity: .3;
+    transform: scale(.97);
+  }
+  50% {
+    opacity: .95;
+    transform: scale(1.035);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .passportVisitSparkles i,
+  .passportStampAura::before,
+  .passportStampAura::after,
+  .passportVenueAura::before,
+  .passportVenueAura::after {
+    animation: none;
+  }
+}
+
+
+/* HAKOOSHI FULL PAGE VISIT EFFECTS */
+.passportPage[data-visit-count] {
+  --visit-power: 0;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.passportPage[data-visit-count]::before,
+.passportPage[data-visit-count]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.passportPage[data-visit-count]::before {
+  inset: 7px;
+  border: 1px solid #b89a5a;
+  outline: 1px solid #b89a5a55;
+  outline-offset: 4px;
+  background:
+    radial-gradient(ellipse at 0% 0%, #d9bd7955 0%, transparent 43%),
+    radial-gradient(ellipse at 100% 0%, #d9bd7944 0%, transparent 42%),
+    radial-gradient(ellipse at 0% 100%, #d9bd7944 0%, transparent 42%),
+    radial-gradient(ellipse at 100% 100%, #d9bd7955 0%, transparent 43%),
+    radial-gradient(ellipse at 50% 50%, #e4c8781c 0%, transparent 72%);
+  opacity: min(.9, calc(.16 + var(--visit-power) * .025));
+  box-shadow: inset 0 0 calc(8px + var(--visit-power) * 1.2px) #c6a45e66;
+  animation: passportPageGlow 4.5s ease-in-out infinite;
+}
+
+.passportPage[data-visit-count]::after {
+  inset: 13px;
+  border: 1px solid #c6a45e66;
+  background-image:
+    radial-gradient(circle, #b89a5acc 0 1px, transparent 1.8px),
+    radial-gradient(circle, #d0b477bb 0 1.3px, transparent 2px),
+    radial-gradient(circle, #b89a5a99 0 .8px, transparent 1.6px);
+  background-size: 47px 53px, 71px 67px, 89px 79px;
+  background-position: 4px 8px, 21px 17px, 37px 29px;
+  opacity: min(.75, calc(.10 + var(--visit-power) * .022));
+  animation: passportPageShimmer 7s ease-in-out infinite alternate;
+}
+
+@keyframes passportPageGlow {
+  0%, 100% { filter: brightness(.92); }
+  50% { filter: brightness(1.16); }
+}
+
+@keyframes passportPageShimmer {
+  from { background-position: 4px 8px, 21px 17px, 37px 29px; }
+  to { background-position: 13px 17px, 10px 29px, 49px 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .passportPage[data-visit-count]::before,
+  .passportPage[data-visit-count]::after {
+    animation: none;
+  }
+}
+
+
+/* HAKOOSHI PENLIGHT LIVE DESIGN */
+.passportPage[data-visit-tier="legend"] {
+  color: #f4f0ff;
+  background:
+    radial-gradient(ellipse at 50% 50%, #25234b 0%, transparent 75%),
+    linear-gradient(145deg, #101326, #17152f 55%, #101a31);
+  border-color: #7770aa;
+}
+
+.passportPage[data-visit-count] > * {
+  position: relative;
+  z-index: 1;
+}
+
+.passportPage[data-visit-tier="legend"]::before {
+  inset: 0;
+  border: 0;
+  outline: none;
+  background:
+    linear-gradient(115deg, transparent 5%, #55d9ff22 19%, transparent 34%),
+    linear-gradient(245deg, transparent 8%, #c05cff25 25%, transparent 43%),
+    linear-gradient(65deg, transparent 35%, #ff4fae20 54%, transparent 70%),
+    linear-gradient(180deg, #171b3b00 20%, #090d20aa 100%),
+    radial-gradient(ellipse at 5% 5%, #36baff66 0%, transparent 43%),
+    radial-gradient(ellipse at 95% 8%, #a34dff66 0%, transparent 44%),
+    radial-gradient(ellipse at 0% 95%, #ff4fae55 0%, transparent 42%),
+    radial-gradient(ellipse at 100% 95%, #397dff66 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, #6252cf33 0%, transparent 75%);
+  opacity: min(.95, calc(.35 + var(--visit-power) * .025));
+  box-shadow:
+    inset 0 0 25px #6c68ff55,
+    inset 0 0 calc(20px + var(--visit-power) * 2px) #398dff66;
+  animation: passportPenlightBeam 5s ease-in-out infinite alternate;
+}
+
+.passportPage[data-visit-count]::after {
+  inset: 0;
+  border: 0;
+  background-image:
+    radial-gradient(circle, #ffffffdd 0 1px, transparent 2px),
+    radial-gradient(circle, #65dfffff 0 1.5px, transparent 2.5px),
+    radial-gradient(circle, #e18affdd 0 1.3px, transparent 2.5px),
+    radial-gradient(circle, #ff79c8dd 0 1px, transparent 2px);
+  background-size: 39px 47px, 67px 73px, 83px 59px, 97px 89px;
+  background-position: 5px 9px, 24px 18px, 41px 31px, 13px 42px;
+  opacity: min(.85, calc(.16 + var(--visit-power) * .025));
+  animation: passportPenlightParticles 8s linear infinite;
+  mix-blend-mode: screen;
+}
+
+.passportPage[data-visit-tier="legend"] .passportBrand {
+  color: #d9d4ff;
+  text-shadow: 0 0 12px #a98bff99;
+}
+
+.passportPage[data-visit-tier="legend"] .passportBrand small,
+.passportPage[data-visit-tier="legend"] .passportKicker,
+.passportPage[data-visit-tier="legend"] .passportField > span,
+.passportPage[data-visit-tier="legend"] .passportRoute span,
+.passportPage[data-visit-tier="legend"] .passportDocument,
+.passportPage[data-visit-tier="legend"] .passportPageHeading,
+.passportPage[data-visit-tier="legend"] .passportPageFoot {
+  color: #b9b8dc;
+}
+
+.passportPage[data-visit-tier="legend"] .passportField {
+  border-color: #9c91dc66;
+}
+
+.passportPage[data-visit-tier="legend"] .passportField > strong,
+.passportPage[data-visit-tier="legend"] .passportRoute strong {
+  color: #ffffff;
+  text-shadow: 0 0 10px #8f82ff66;
+}
+
+.passportPage[data-visit-tier="legend"] .passportDocument b,
+.passportPage[data-visit-tier="legend"] .passportPageHeading b {
+  color: #d8d1ff;
+}
+
+.passportPage[data-visit-tier="legend"] .passportPageHeading {
+  border-color: #9c91dc66;
+}
+
+.passportPage[data-visit-tier="legend"] .passportStampAura {
+  background:
+    radial-gradient(ellipse, #8a6cff55 0%, #3b8dff33 38%, #ff55bd22 62%, transparent 78%);
+  box-shadow:
+    0 0 20px #7065ff88,
+    0 0 45px #398dff55,
+    inset 0 0 30px #bd79ff33;
+}
+
+.passportPage[data-visit-tier="legend"] .visitStamp {
+  color: #d9d4ff;
+  border-color: #b8aaff;
+  background: #17162d99;
+  box-shadow:
+    0 0 12px #8b78ff99,
+    0 0 28px #4a9dff55,
+    inset 0 0 18px #a36dff33;
+  text-shadow: 0 0 10px #b7a0ff;
+}
+
+.passportPage[data-visit-tier="legend"] .visitStamp em {
+  color: #ff9bd7;
+}
+
+.passportPage[data-visit-tier="legend"] .passportVisitSparkles i {
+  color: #d9f8ff;
+  text-shadow:
+    0 0 5px #ffffff,
+    0 0 12px #58d9ff,
+    0 0 22px #ad68ff;
+}
+
+.passportPage[data-visit-tier="legend"] .passportStampAura::before,
+.passportPage[data-visit-tier="legend"] .passportStampAura::after {
+  border-color: #9d8aff;
+  box-shadow:
+    0 0 12px #8d6dff,
+    0 0 25px #45baff88;
+}
+
+@keyframes passportPenlightBeam {
+  0% {
+    filter: brightness(.85) hue-rotate(0deg);
+    background-position: 0% 0%, 100% 0%, 0% 100%, 0 0, 0 0, 100% 0, 0 100%, 100% 100%, center;
+  }
+  50% {
+    filter: brightness(1.2) hue-rotate(12deg);
+  }
+  100% {
+    filter: brightness(1.05) hue-rotate(-12deg);
+    background-position: 12% 10%, 85% 5%, 10% 90%, 0 0, 10% 5%, 90% 5%, 5% 90%, 95% 90%, center;
+  }
+}
+
+@keyframes passportPenlightParticles {
+  from {
+    background-position: 5px 9px, 24px 18px, 41px 31px, 13px 42px;
+  }
+  to {
+    background-position: 35px 59px, 74px 68px, 91px 81px, 63px 92px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .passportPage[data-visit-count]::before,
+  .passportPage[data-visit-count]::after {
+    animation: none;
+  }
+}
+
+
+/* HAKOOSHI VISIT LEVELS 1-6 */
+.passportPage[data-visit-tier] {
+  transition: box-shadow .6s ease, filter .6s ease;
+}
+
+.passportPage[data-visit-tier="first"] {
+  box-shadow: inset 0 0 18px #8b78ff55;
+}
+.passportPage[data-visit-tier="first"]::before {
+  opacity: .38;
+}
+
+.passportPage[data-visit-tier="second"] {
+  box-shadow: inset 0 0 25px #6c8dff77, 0 0 8px #8d78ff55;
+}
+.passportPage[data-visit-tier="second"]::before {
+  opacity: .48;
+  filter: brightness(1.08);
+}
+.passportPage[data-visit-tier="second"]::after {
+  opacity: .28;
+}
+
+.passportPage[data-visit-tier="third"] {
+  box-shadow: inset 0 0 35px #786aff88, 0 0 13px #a16cff77;
+}
+.passportPage[data-visit-tier="third"]::before {
+  opacity: .60;
+  filter: brightness(1.16);
+}
+.passportPage[data-visit-tier="third"]::after {
+  opacity: .40;
+}
+
+.passportPage[data-visit-tier="fourth"] {
+  box-shadow: inset 0 0 48px #7665ff99, 0 0 20px #5c9dff99;
+}
+.passportPage[data-visit-tier="fourth"]::before {
+  opacity: .72;
+  filter: brightness(1.25) saturate(1.15);
+}
+.passportPage[data-visit-tier="fourth"]::after {
+  opacity: .52;
+}
+
+.passportPage[data-visit-tier="fifth"] {
+  box-shadow: inset 0 0 65px #9a5cffbb, 0 0 28px #4dbdffbb;
+}
+.passportPage[data-visit-tier="fifth"]::before {
+  opacity: .84;
+  filter: brightness(1.35) saturate(1.3);
+}
+.passportPage[data-visit-tier="fifth"]::after {
+  opacity: .68;
+}
+
+.passportPage[data-visit-tier="legend"] {
+  box-shadow:
+    inset 0 0 80px #b45cffcc,
+    inset 0 0 35px #4ddfffff,
+    0 0 35px #a45cffcc;
+  animation: passportLegendGlow 2.8s ease-in-out infinite;
+}
+.passportPage[data-visit-tier="legend"]::before {
+  opacity: .95;
+  filter: brightness(1.5) saturate(1.5);
+}
+.passportPage[data-visit-tier="legend"]::after {
+  opacity: .85;
+}
+
+.passportVenueAura.second,
+.passportStampAura.second {
+  box-shadow: 0 0 0 1px #8c9aff99, 0 0 25px #788cff99, inset 0 0 18px #a58aff55;
+}
+.passportVenueAura.third,
+.passportStampAura.third {
+  box-shadow: 0 0 0 2px #a28affaa, 0 0 32px #9872ffbb, 0 0 55px #5c9dff66, inset 0 0 25px #b58aff77;
+}
+.passportVenueAura.fourth,
+.passportStampAura.fourth {
+  box-shadow: 0 0 0 2px #b38affcc, 0 0 38px #a36cffcc, 0 0 70px #5c9dffaa, inset 0 0 30px #c18aff99;
+}
+.passportVenueAura.fifth,
+.passportStampAura.fifth {
+  box-shadow: 0 0 0 2px #d09aff, 0 0 48px #b16cff, 0 0 85px #4dcaffbb, 0 0 110px #e05cff66, inset 0 0 38px #d49affaa;
+}
+.passportVenueAura.legend,
+.passportStampAura.legend {
+  box-shadow: 0 0 0 3px #e3c5ff, 0 0 55px #c36cff, 0 0 95px #54dfff, 0 0 135px #ed65ff99, inset 0 0 45px #e0aaffcc;
+}
+
+.passportPage[data-visit-tier="legend"] .passportVisitSparkles i {
+  color: #fff3ff;
+  text-shadow: 0 0 7px #fff, 0 0 18px #ff79ed, 0 0 32px #62dfff;
+}
+
+@keyframes passportLegendGlow {
+  0%, 100% { filter: brightness(1) saturate(1.1); }
+  50% { filter: brightness(1.28) saturate(1.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .passportPage[data-visit-tier="legend"] {
+    animation: none;
+  }
+}
+
+
+/* HAKOOSHI CONTINUOUS VISIT PROGRESSION */
+/* 訪問回数1〜6に応じて、光・オーラ・粒子を連続的に強化 */
+
+.passportPage[data-visit-count] {
+  box-shadow:
+    inset 0 0 calc(12px + var(--visit-power) * 8px)
+      rgb(138 108 255 / calc(.18 + var(--visit-power) * .07)),
+    0 0 calc(2px + var(--visit-power) * 3px)
+      rgb(84 190 255 / calc(.12 + var(--visit-power) * .09));
+  transition: box-shadow .6s ease, filter .6s ease;
+}
+
+.passportPage[data-visit-count]::before {
+  opacity: calc(.28 + var(--visit-power) * .105);
+  box-shadow:
+    inset 0 0 calc(12px + var(--visit-power) * 7px)
+      rgb(112 120 255 / calc(.25 + var(--visit-power) * .09)),
+    inset 0 0 calc(8px + var(--visit-power) * 5px)
+      rgb(75 210 255 / calc(.12 + var(--visit-power) * .08));
+}
+
+.passportPage[data-visit-count]::after {
+  opacity: calc(.12 + var(--visit-power) * .12);
+}
+
+.passportPage[data-visit-count] .passportVenueAura,
+.passportPage[data-visit-count] .passportStampAura {
+  background:
+    radial-gradient(
+      ellipse,
+      rgb(145 112 255 / calc(.10 + var(--visit-power) * .045)) 0%,
+      rgb(65 175 255 / calc(.05 + var(--visit-power) * .025)) 45%,
+      rgb(255 100 210 / calc(.02 + var(--visit-power) * .018)) 65%,
+      transparent 82%
+    );
+  box-shadow:
+    0 0 0 calc(.5px + var(--visit-power) * .4px)
+      rgb(178 157 255 / calc(.25 + var(--visit-power) * .11)),
+    0 0 calc(12px + var(--visit-power) * 8px)
+      rgb(130 105 255 / calc(.25 + var(--visit-power) * .10)),
+    0 0 calc(22px + var(--visit-power) * 13px)
+      rgb(65 185 255 / calc(.10 + var(--visit-power) * .075)),
+    0 0 calc(30px + var(--visit-power) * 16px)
+      rgb(230 90 220 / calc(.04 + var(--visit-power) * .055)),
+    inset 0 0 calc(12px + var(--visit-power) * 5px)
+      rgb(190 145 255 / calc(.12 + var(--visit-power) * .09));
+  transition: box-shadow .6s ease, background .6s ease, filter .6s ease;
+}
+
+.passportPage[data-visit-count] .passportVenueAura::before,
+.passportPage[data-visit-count] .passportStampAura::before {
+  inset: calc(-4px - var(--visit-power) * 1.2px);
+  opacity: calc(.35 + var(--visit-power) * .105);
+  border-width: calc(1px + var(--visit-power) * .2px);
+  box-shadow:
+    0 0 calc(7px + var(--visit-power) * 5px)
+      rgb(170 145 255 / .85),
+    0 0 calc(12px + var(--visit-power) * 7px)
+      rgb(70 195 255 / .55);
+}
+
+.passportPage[data-visit-count] .passportVenueAura::after,
+.passportPage[data-visit-count] .passportStampAura::after {
+  inset: calc(-9px - var(--visit-power) * 1.8px);
+  opacity: calc(.18 + var(--visit-power) * .10);
+  border-color: rgb(205 175 255 / .75);
+}
+
+.passportPage[data-visit-count] .passportVisitSparkles i {
+  font-size: calc(12px + var(--visit-power) * 1.2px);
+  text-shadow:
+    0 0 calc(5px + var(--visit-power) * 1px) #ffffff,
+    0 0 calc(12px + var(--visit-power) * 2px) #58d9ff,
+    0 0 calc(18px + var(--visit-power) * 3px) #ad68ff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .passportPage[data-visit-count],
+  .passportPage[data-visit-count]::before,
+  .passportPage[data-visit-count]::after {
+    animation: none;
+    transition: none;
+  }
+}

@@ -579,7 +579,15 @@ html, body {
 .mapVenuePin { background: #a94e77; color: white; width: 34px; height: 38px; border-radius: 15px 15px 5px 5px; }
 .mapSpotPin { background: #fffaf0; color: #604a77; border-color: #9b80b7; width: 27px; height: 27px; border-radius: 50%; font-size: 11px; font-weight: 800; }
 .mapSpotPin.selected { background: #6a4d86; color: white; z-index: 2; outline: 3px solid #e7d5fa; }
-.mapSpotPin:focus-visible, .mapVenuePin:focus-visible { outline: 3px solid #4b2579; z-index: 3; }
+.mapRentalPin { position: absolute; z-index: 1; display: grid; place-items: center; transform: translate(-50%, -50%); width: 25px; height: 25px; padding: 0; border: 2px solid white; border-radius: 50%; background: #367c69; color: white; box-shadow: 0 2px 7px #35253c45; cursor: pointer; }
+.mapRentalPin.selected { z-index: 2; background: #205543; outline: 3px solid #b8e4d7; }
+.mapSpotPin:focus-visible, .mapVenuePin:focus-visible, .mapRentalPin:focus-visible { outline: 3px solid #4b2579; z-index: 3; }
+.mapLegend { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 12px; color: #82748d; font-size: 10px; }
+.mapLegend span { display: inline-flex; align-items: center; gap: 5px; }
+.mapLegend i { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; }
+.venueLegend { background: #a94e77; }
+.sightseeingLegend { border: 2px solid #9b80b7; background: #fffaf0; }
+.mapLegend .rentalLegend { background: #367c69; color: white; }
 .mapControls { position: absolute; top: 10px; left: 10px; z-index: 4; display: flex; flex-direction: column; border: 1px solid #ded6e6; border-radius: 9px; overflow: hidden; box-shadow: 0 2px 6px #35253c1f; }
 .mapControls button { background: white; color: #5b456f; border: 0; border-bottom: 1px solid #eee7f3; width: 36px; height: 34px; cursor: pointer; font-size: 15px; }
 .mapControls button:last-child { font-size: 10px; border: 0; }
@@ -597,9 +605,23 @@ html, body {
 .spotDetail { background: #f6f0fb; border-left: 3px solid #9e7cb9; border-radius: 5px; padding: 12px 15px; margin-top: 12px; display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: #5d456f; overflow-wrap: anywhere; }
 .spotDetail span { font-size: 10px; color: #8a749c; }
 .spotDetail a { font-size: 10px; display: flex; align-items: center; gap: 4px; }
+.rentalDetail { display: flex; flex-direction: column; gap: 5px; margin-top: 12px; padding: 13px 15px; border: 1px solid #d5e9e2; border-left: 3px solid #367c69; border-radius: 6px; background: #f1f8f5; color: #315d50; }
+.rentalDetail > strong { font-size: 13px; }
+.rentalDetail > span, .rentalDetail > small { color: #6e8d82; font-size: 10px; }
+.rentalDetail > b { font-size: 24px; line-height: 1.2; }
+.rentalDetail > b small { font-size: 12px; font-weight: 500; }
+.rentalList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding: 0; margin: 14px 0 0; list-style: none; max-height: 260px; overflow-y: auto; }
+.rentalList button { width: 100%; min-height: 62px; display: flex; align-items: center; gap: 9px; padding: 9px 10px; border: 1px solid #dcebe5; border-radius: 9px; background: #fff; color: #426b5f; text-align: left; cursor: pointer; }
+.rentalList button[aria-pressed=true] { border-color: #6d9d8c; background: #f1f8f5; }
+.rentalList button > span { flex: 1; min-width: 0; }
+.rentalList button strong, .rentalList button small { display: block; }
+.rentalList button strong { font-size: 11px; overflow-wrap: anywhere; }
+.rentalList button small { margin-top: 3px; color: #789187; font-size: 9px; }
+.rentalList button > b { flex-shrink: 0; font-size: 13px; }
+.rentalList button > b small { font-size: 9px; font-weight: 500; }
 .nearbySource { font-size: 9px; color: #95879f; line-height: 1.9; margin: 12px 0 0; }
 .savedVenue { display: flex; align-items: center; gap: 5px; color: #705887; font-size: 13px; }
-@media (max-width: 560px) { .spotMap { height: 280px; } .spotList { grid-template-columns: 1fr; } .nearbyHeading h2 { font-size: 16px; } }
+@media (max-width: 560px) { .spotMap { height: 280px; } .spotList, .rentalList { grid-template-columns: 1fr; } .nearbyHeading h2 { font-size: 16px; } }
 .mapExternal { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 10px; color: #8a719f; margin-top: 9px; }
 .mapTileError { position: absolute; bottom: 16px; right: 0; left: 0; z-index: 4; background: #fffffff2; color: #776087; padding: 6px; margin: 0; font-size: 10px; text-align: center; }
 .mapTileError a { margin-left: 6px; }
@@ -647,6 +669,72 @@ html, body {
 .reverseMonthChart small { font-size: 7px; color: #7c6b88; }
 .reverseTrendText { font-size: 9px; margin: 0; color: #796386; }
 @media (max-width: 560px) { .stayInsights { padding: 16px 12px; } .stayInsights h2 { font-size: 16px; } .occupancyChart { gap: 2px; } .occupancyChart small { font-size: 8px; } }
+
+.gpsPanel { margin: 30px 0; padding: 22px; background: #fff; border: 1px solid #e8e3dd; border-radius: 16px; }
+.gpsPanelHeading { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.gpsPanelIcon { display: grid; width: 36px; height: 36px; place-items: center; color: #718767; background: #edf2e8; border-radius: 10px; }
+.gpsPanelHeading h2 { margin: 0 0 5px; font-size: 16px; }
+.gpsPanelHeading p, .gpsPrivacyNote { margin: 0; color: #8b8490; font-size: 11px; line-height: 1.8; }
+.gpsSelectLabel { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 700; }
+.gpsSelect { width: 100%; max-width: 420px; padding: 10px 12px; color: #383342; background: #fcfbfd; border: 1px solid #e8e4ed; border-radius: 9px; font: inherit; font-size: 13px; }
+.gpsActions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.gpsActionButton { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 13px; color: #fff; background: #718767; border: 0; border-radius: 9px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.gpsActionButton.secondary { color: #645788; background: #f0ecf8; }
+.gpsActionButton.stop { color: #a64b4b; background: #f9eded; }
+.gpsActionButton:disabled { opacity: .48; cursor: not-allowed; }
+.gpsLiveStatus { display: flex; align-items: center; gap: 7px; margin: 10px 0; color: #607c53; font-size: 12px; font-weight: 700; }
+.gpsLiveStatus > span { width: 8px; height: 8px; background: #73a455; border-radius: 50%; box-shadow: 0 0 0 4px #73a45524; }
+.gpsLastPosition { margin: 8px 0; color: #64705e; font-size: 11px; }
+.gpsTrackingWarning { display: flex; align-items: flex-start; gap: 7px; margin: 10px 0; padding: 10px 12px; color: #8d632f; background: #fff7e9; border: 1px solid #f1dfbf; border-radius: 8px; font-size: 11px; line-height: 1.7; }
+.gpsTrackingWarning svg { flex: 0 0 auto; margin-top: 2px; }
+.gpsPrivacyNote { margin-top: 12px; }
+.gpsLimitNote { margin: 7px 0 0; color: #947552; font-size: 10px; line-height: 1.8; }
+.gpsNotice, .gpsError { margin: 12px 0; padding: 10px 12px; border-radius: 8px; font-size: 12px; line-height: 1.7; }
+.gpsNotice { color: #54744b; background: #f1f6ed; }
+.gpsError { color: #a34242; background: #fbefef; }
+.gpsHistory { margin-top: 22px; border-top: 1px solid #efebe5; padding-top: 16px; }
+.gpsHistory h3 { margin: 0 0 10px; font-size: 13px; }
+.gpsEmpty { color: #99929f; font-size: 12px; }
+.gpsRecord { padding: 10px 0; border-top: 1px solid #f0ede8; }
+.gpsRecordHeader { display: flex; align-items: center; gap: 8px; }
+.gpsRecordOpen { display: grid; flex: 1; gap: 4px; padding: 0; text-align: left; color: inherit; background: transparent; border: 0; cursor: pointer; }
+.gpsRecordOpen strong { font-size: 12px; }
+.gpsRecordOpen span, .gpsRecordOpen small { color: #89838e; font-size: 10px; }
+.gpsDeleteButton { display: grid; width: 34px; height: 34px; flex: 0 0 auto; place-items: center; color: #a77979; background: #faf4f4; border: 0; border-radius: 8px; cursor: pointer; }
+.gpsRoute { margin-top: 12px; padding: 10px; background: #f7f8f4; border: 1px solid #e8ebe2; border-radius: 12px; }
+.gpsMapViewport { position: relative; overflow: hidden; border-radius: 9px; background: #eaf3f6; }
+.gpsRoute svg { display: block; width: 100%; max-height: 360px; overflow: hidden; cursor: grab; touch-action: none; user-select: none; }
+.gpsRoute svg.isDragging { cursor: grabbing; }
+.gpsRoute .gpsMapWater { fill: #eaf3f6; stroke: #d7e5ea; }
+.gpsRoute image { pointer-events: none; }
+.gpsRoute polyline { fill: none; stroke: #718767; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.gpsRoute circle { stroke: #fff; stroke-width: 2; }
+.gpsRouteStart { fill: #8b75bd; }
+.gpsRouteEnd { fill: #d58362; }
+.gpsRouteLegend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 8px 2px 0; color: #77727d; font-size: 9px; }
+.gpsRouteLegend > span { display: inline-flex; align-items: center; gap: 5px; }
+.gpsRouteLegend i { display: inline-block; width: 8px; height: 8px; border: 1px solid #fff; border-radius: 50%; }
+.gpsRouteLegend i.gpsRouteStart { background: #8b75bd; }
+.gpsRouteLegend i.gpsRouteEnd { background: #d58362; }
+.gpsRouteLegend small { flex: 1 1 100%; color: #918a96; line-height: 1.6; }
+.gpsMapControls { position: absolute; top: 9px; right: 9px; display: grid; gap: 5px; justify-items: center; padding: 5px; background: #ffffffed; border: 1px solid #deded8; border-radius: 9px; box-shadow: 0 2px 8px #30303020; }
+.gpsMapControls button { display: grid; width: 32px; height: 32px; place-items: center; color: #4f5c50; background: white; border: 1px solid #e7e6df; border-radius: 6px; cursor: pointer; }
+.gpsMapControls button:hover:not(:disabled) { background: #f0f3eb; }
+.gpsMapControls button:disabled { color: #b7b7b1; cursor: not-allowed; }
+.gpsMapControls > span { color: #77727d; font-size: 8px; }
+.gpsMapHelp { margin: 7px 2px 0; color: #85808a; font-size: 9px; }
+.gpsMapAttribution { display: block; margin-top: 6px; color: #77727d; font-size: 9px; text-align: right; }
+.gpsTileError { margin: 8px 0 0; color: #a34242; font-size: 10px; line-height: 1.6; }
+.gpsRouteEmpty { margin: 12px 0 0; padding: 12px; color: #8a7a60; background: #fbf7ef; border-radius: 8px; font-size: 10px; line-height: 1.7; }
+.gpsRouteSummary { margin: 7px 0; color: #8a8490; font-size: 9px; }
+.gpsPointList { display: grid; gap: 8px; margin: 12px 0 0; padding: 12px 0 0 22px; border-top: 1px dashed #e7e1d8; }
+.gpsPointList li { display: grid; gap: 3px; color: #68616e; font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.gpsGapMarker { margin: 0 0 4px -22px; padding: 7px 9px; color: #966c36; background: #fff7e9; border-radius: 6px; font-size: 9px; }
+.gpsPointKind { color: #718767; font-weight: 700; }
+.gpsPointList time { color: #98919d; }
+.gpsPointList .verified { color: #54744b; }
+.gpsPointList .unverified { color: #a57958; }
+@media (max-width: 560px) { .gpsPanel { padding: 16px 13px; } .gpsActionButton { flex: 1 1 130px; } }
 
 /* A personal travel passport: two bound pages, with no boarding-pass perforation. */
 .passportStage { padding: 20px 8px; border: 1px solid #e5ded2; border-radius: 14px; background: #f3efe7; }
@@ -744,7 +832,28 @@ html, body {
 .passportOwnCost > span { font-size: 7px; color: #9a967c; }
 .passportOwnCost > strong { font: 25px Georgia,serif; }
 .passportOwnCost > small { font-size: 7px; color: #9a967c; }
+.passportDataPage:has(.passportOutfit) h2 { margin: 8px 0 6px; font-size: 21px; }
+.passportDataPage:has(.passportOutfit) .passportGuestCount { gap: 2px; padding-bottom: 6px; }
+.passportDataPage:has(.passportOutfit) .passportGuestCount > strong { font-size: 24px; }
+.passportDataPage:has(.passportOutfit) .passportDataSource { margin: 3px 0 6px; line-height: 1.4; }
+.passportDataPage:has(.passportOutfit) .passportMonthChart { height: 40px; margin-top: 5px; }
+.passportDataPage:has(.passportOutfit) .passportMonthChart span { height: 29px; }
+.passportDataPage:has(.passportOutfit) .passportStayFact > b { margin-top: 4px; }
+.passportOutfit { border: 1px solid #beb28c75; background: #fbf6e9; padding: 8px 10px; font-size: 9px; line-height: 1.45; overflow-wrap: anywhere; }
+.passportOutfit strong, .passportOutfit span { display: block; color: #697758; }
+.passportOutfit p { margin: 3px 0 0; }
 .passportNotesMemory { font-size: 10px; line-height: 1.7; overflow-wrap: anywhere; }
+.passportSetlist { margin: 9px 0; padding: 8px 10px; border: 1px solid #beb28c75; background: #fbf6e9; }
+.passportSetlistHeading { display: flex; justify-content: space-between; gap: 8px; color: #697758; font-size: 9px; }
+.passportDataPage { min-height: 0; }
+.passportDataPage:has(.passportSetlistFit) .passportTravelPrompt { min-height: 0; }
+.passportSetlistFit { display: flex; flex: 1 1 0; flex-direction: column; min-height: 0; }
+.passportSetlistArea { position: relative; flex: 1 1 0; min-height: 0; margin-top: 4px; }
+.passportSetlistColumns { position: absolute; inset: 0 0 auto; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: start; gap: 8px; font-size: 9px; }
+.passportSetlistColumns ol { margin: 0; padding-inline-start: 3em; list-style: decimal-leading-zero; line-height: 1.45; }
+.passportSetlistColumns li { overflow-wrap: anywhere; }
+.passportSetlistColumns li::marker { color: #697758; }
+.passportSetlistSource { margin-top: 6px; font-size: 7px; overflow-wrap: anywhere; }
 .passportSeaNote { display: flex; gap: 6px; align-items: center; font-size: 7px; color: #7b9692; }
 .ferryLearning { background: #eff5f4; color: #6e8a86; padding: 12px; border-radius: 9px; line-height: 1.8; font-size: 10px; }
 .passportProgress { border-top: 1px solid #e2e5d9; padding-top: 26px; margin-top: 30px; }
@@ -756,7 +865,24 @@ html, body {
 .prefectureStamps small { font-size: 5px; letter-spacing: .05em; margin-top: 4px; }
 .prefectureStamps button.collected { border: 2px double #829b73; color: #738b60; background: #f2f5e9; cursor: pointer; transform: rotate(-7deg); }
 .passportProgress > small { font-size: 9px; line-height: 1.8; color: #a0a38d; }
+.journeyBadges { margin-top: 24px; padding-top: 18px; border-top: 1px solid #e8eadf; }
+.journeyBadgesHeading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.journeyBadgesHeading h3 { display: flex; align-items: center; gap: 7px; margin: 0; color: #63795d; font-size: 14px; }
+.journeyBadgesHeading > span { color: #929783; font-size: 10px; }
+.journeyBadgeGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.journeyBadge { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 11px; border: 1px solid #e7e8e1; border-radius: 11px; background: #fafaf7; color: #a3a597; }
+.journeyBadge.earned { border-color: #d7dfca; background: linear-gradient(135deg, #f8faef, #fffdf6); color: #6d825f; }
+.journeyBadgeIcon { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #eeefe9; color: #aaa99d; }
+.journeyBadge.earned .journeyBadgeIcon { background: #e8efd9; color: #738a5f; box-shadow: inset 0 0 0 1px #dce5ce; }
+.journeyBadgeInfo { display: grid; min-width: 0; gap: 3px; }
+.journeyBadgeInfo strong { overflow-wrap: anywhere; color: #8d9082; font-size: 11px; }
+.journeyBadge.earned .journeyBadgeInfo strong { color: #5f7651; }
+.journeyBadgeInfo small { color: #a3a394; font-size: 9px; line-height: 1.5; }
+.journeyBadgeStatus, .journeyBadgeProgress { color: #9c9d91; font-size: 9px; }
+.journeyBadge.earned .journeyBadgeStatus { color: #70885d; font-weight: 700; }
+.passportProgress .journeyBadgeNote { display: block; margin-top: 11px; color: #999b8b; font-size: 9px; line-height: 1.8; }
 @media(max-width:560px) { .passportStage { padding: 12px 5px; } .prefectureStamps { grid-template-columns: repeat(6,minmax(0,1fr)); gap: 8px; } .passportProgress h2 { font-size: 16px; } }
+@media(max-width:420px) { .journeyBadgeGrid { grid-template-columns: 1fr; } }
 .lodgingInfo { border-top: 1px solid #e6e4d9; margin-top: 28px; padding-top: 25px; }
 .lodgingInfo h2 { display: flex; align-items: center; gap: 7px; font-size: 18px; color: #6c805f; margin: 9px 0; }
 .lodgingInfo > p { color: #969b88; font-size: 11px; line-height: 1.8; }
@@ -1601,3 +1727,9 @@ a:focus-visible {
 }
 
 /* END HAKOOSHI PASSPORT DETAIL COLORS */
+.ticketSetlist {
+  margin: 0;
+  padding-inline-start: 1.6em;
+  list-style: decimal;
+  overflow-wrap: anywhere;
+}

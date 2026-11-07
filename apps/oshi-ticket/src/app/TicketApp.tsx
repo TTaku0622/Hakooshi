@@ -8,16 +8,20 @@ import { PassportSpread, IdentityPage, VisaPage, PASSPORT_WIDTH, PASSPORT_HEIGHT
 import { PassportNotes, DestinationNotesPage, MyJourneyPage, type PassportNotesProps } from "./passport-notes";
 import { PassportBook } from "./passport-book";
 import { PassportProgress } from "./passport-progress";
+import { getEarnedJourneyBadges } from "./journey-badges";
 import { railways, ferryFacts } from "./travel-data";
 import { ArtistSearch } from "./artist-search";
+import { SetlistSearch } from "./setlist-search";
+import { normalizeSetlist, parseSetlist } from "./setlist";
 import { StayInsights } from "./stay-insights";
 import { OshiColors } from "./oshi-colors";
 import { VenueSearch } from "./venue-search";
 import { NearbyMap } from "./nearby-map";
 import { LodgingInfo } from "./lodging-info";
+import { JourneyGps } from "./JourneyGps";
 import type { Venue } from "./map-utils";
 import { prefectureFlagColors } from "./prefecture-colors";
-import { prefectures, tourismYears, parseActualTotal, type SavedTicket, type TourismData, type TripType, type TripStatus, type TicketSide } from "./trip-data";
+import { artistGenres, prefectures, tourismYears, parseActualTotal, type SavedTicket, type TourismData, type TripType, type TripStatus, type TicketSide } from "./trip-data";
 
 function hashString(value: string) {
 
@@ -168,6 +172,16 @@ export default function TicketApp({ username }: { username: string }) {
   const [date, setDate] = useState("");
 
   const [memory, setMemory] = useState("");
+  const [outfitGenre, setOutfitGenre] = useState("");
+  const [outfitDetails, setOutfitDetails] = useState("");
+  const outfitMemo = outfitDetails.trim();
+  const outfit = outfitGenre || outfitMemo ? { genre: outfitGenre, details: outfitMemo } : undefined;
+  const [setlistText, setSetlistText] = useState("");
+  const [setlistSource, setSetlistSource] = useState<string>();
+  const [linkedConcert, setLinkedConcert] = useState<{ id: string; artist: string; date: string }>();
+  const setlistFmId = linkedConcert?.artist === oshi.trim() && linkedConcert.date === date ? linkedConcert.id : undefined;
+  const setlist = useMemo(() => parseSetlist(setlistText), [setlistText]);
+  const normalizedSetlist = normalizeSetlist(oshi, setlistText);
 
   const [photo, setPhoto] = useState("");
 
@@ -425,6 +439,10 @@ export default function TicketApp({ username }: { username: string }) {
     const snapshot = {
       id: editingId ?? Date.now(), oshi: oshi.trim(), event: event.trim(), origin, destination, date, color,
       memory, photo, venue: venue ?? undefined, travelMode, railwayId, ferryRoute, format: "passport" as const,
+      outfit,
+      setlist,
+      setlistFmId,
+      setlistSource: setlist.length ? setlistSource : undefined,
       status, tripType, actualTotal: actualTotal.trim(), benchmark,
     };
 
@@ -439,6 +457,8 @@ export default function TicketApp({ username }: { username: string }) {
       const ticket: SavedTicket = { ...snapshot, image, backImage };
 
       const updated = editingId === null ? [ticket, ...savedTickets] : savedTickets.map((item) => item.id === editingId ? ticket : item);
+      const previousBadgeIds = new Set(getEarnedJourneyBadges(savedTickets).map((badge) => badge.id));
+      const newlyEarnedBadges = getEarnedJourneyBadges(updated).filter((badge) => !previousBadgeIds.has(badge.id));
 
       localStorage.setItem("oshi-journey-collection", JSON.stringify(updated));
 
@@ -448,7 +468,8 @@ export default function TicketApp({ username }: { username: string }) {
 
       setPinnedBenchmark(benchmark);
 
-      setNotice({ type: "success", text: editingId !== null ? "訪問ページを更新しました。" : status === "planned" ? "遠征の予定を保存しました。帰ってきたら写真と実費を追記できます。" : "遠征の思い出を保存しました。" });
+      const savedMessage = editingId !== null ? "訪問ページを更新しました。" : status === "planned" ? "遠征の予定を保存しました。帰ってきたら写真と実費を追記できます。" : "遠征の思い出を保存しました。";
+      setNotice({ type: "success", text: newlyEarnedBadges.length ? `${savedMessage} バッジ獲得：${newlyEarnedBadges.map((badge) => `「${badge.name}」`).join("、")}` : savedMessage });
     } catch {
 
       setNotice({ type: "error", text: "保存できませんでした。ブラウザの保存容量を確認してください。" });
@@ -467,6 +488,11 @@ export default function TicketApp({ username }: { username: string }) {
     setTravelMode("other"); setRailwayId(""); setFerryRoute("");
     setDate("");
     setMemory("");
+    setOutfitGenre("");
+    setOutfitDetails("");
+    setSetlistText("");
+    setSetlistSource(undefined);
+    setLinkedConcert(undefined);
     setPhoto("");
     setActualTotal("");
 
@@ -496,6 +522,11 @@ export default function TicketApp({ username }: { username: string }) {
     setDate(ticket.date);
     setColor(ticket.color);
     setMemory(ticket.memory);
+    setOutfitGenre(ticket.outfit?.genre ?? "");
+    setOutfitDetails(ticket.outfit?.details ?? "");
+    setSetlistText((ticket.setlist ?? []).join("\n"));
+    setSetlistSource(ticket.setlistSource);
+    setLinkedConcert(ticket.setlistFmId ? { id: ticket.setlistFmId, artist: ticket.oshi.trim(), date: ticket.date } : undefined);
     setPhoto(ticket.photo ?? "");
     setActualTotal(ticket.actualTotal ?? "");
 
@@ -561,7 +592,7 @@ export default function TicketApp({ username }: { username: string }) {
 
   // パスポートの各ページに渡す内容（画面のめくれる本と、PNG 保存用の見開きで共通）
   const spreadProps: PassportSpreadProps = { origin, destination, oshi, event, venueName: venue?.name, date, memory: status === "planned" ? "" : memory, photo: status === "completed" ? photo : "", color, seed, destinationPath, status, travelMode, ferryName: travelMode === "ferry" ? ferryRoute || "船旅" : undefined };
-  const notesProps: PassportNotesProps = { destination, color, date, status, data: benchmark, actualTotal: actualValue, memory, travelMode, railway: railways.find((r) => r.id === railwayId), ferryRoute };
+  const notesProps: PassportNotesProps = { destination, color, date, status, data: benchmark, actualTotal: actualValue, memory, outfit, setlist, setlistSource, travelMode, railway: railways.find((r) => r.id === railwayId), ferryRoute };
 
   return (
     <main className="page">
@@ -676,6 +707,20 @@ export default function TicketApp({ username }: { username: string }) {
             </div>
 
             <OshiColors value={color} onChange={setColor} />
+            <div className="field">
+              <label htmlFor="outfitGenre">アーティストのジャンル（任意）</label>
+              <select id="outfitGenre" value={outfitGenre} onChange={(event) => setOutfitGenre(event.target.value)}>
+                <option value="">選択しない</option>
+                {outfitGenre && !artistGenres.includes(outfitGenre) && (
+                  <option value={outfitGenre}>以前の服装分類（{outfitGenre}）</option>
+                )}
+                {artistGenres.map((genre) => <option key={genre}>{genre}</option>)}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="outfitDetails">服装メモ（任意）</label>
+              <textarea id="outfitDetails" value={outfitDetails} onChange={(event) => setOutfitDetails(event.target.value)} maxLength={200} rows={2} placeholder="例：ツアーTシャツ、黒のパンツ、白のスニーカー" />
+            </div>
             {status === "completed" ? <div className="afterTripFields">
 
               <h3>おかえりなさい。旅を記録しよう。</h3>
@@ -696,6 +741,53 @@ export default function TicketApp({ username }: { username: string }) {
               <div className="field">
                 <label htmlFor="memory">思い出のひとこと</label>
                 <textarea id="memory" value={memory} onChange={(e) => setMemory(e.target.value)} placeholder="あの日の思い出を一言で…" maxLength={55} rows={3} />
+              </div>
+
+              <SetlistSearch
+                key={JSON.stringify([editingId, oshi, date])}
+                artist={oshi}
+                date={date}
+                concertId={setlistFmId}
+                onImport={(id, songs, sourceUrl) => {
+                  if (setlistText.trim() && !window.confirm("入力済みのセットリストをこの公演の曲順に置き換えますか？")) return;
+                  setSetlistText(songs.join("\n"));
+                  setSetlistSource(sourceUrl);
+                  setLinkedConcert({ id, artist: oshi.trim(), date });
+                  setTicketSide("back");
+                }}
+                onSelect={(id) => {
+                  setLinkedConcert({ id, artist: oshi.trim(), date });
+                  setTicketSide("back");
+                }}
+              />
+              {setlistFmId && <div className="artistSearchRow">
+                <button type="button" onClick={() => setLinkedConcert(undefined)}>公演のひも付けを解除</button>
+              </div>}
+              <div className="field">
+                <label htmlFor="setlist">セットリスト（任意）</label>
+                <textarea
+                  id="setlist"
+                  value={setlistText}
+                  onChange={(event) => {
+                    const text = event.target.value;
+                    setSetlistText(text);
+                    if (!text.trim()) setSetlistSource(undefined);
+                  }}
+                  placeholder="1行に1曲、演奏順に入力"
+                  maxLength={5000}
+                  rows={5}
+                  aria-describedby="setlist-help"
+                />
+                <p id="setlist-help" className="photoHelp">対応曲を公式表記に変換できます。変換後も編集できます。</p>
+                <div className="artistSearchRow">
+                  <button
+                    type="button"
+                    disabled={normalizedSetlist === parseSetlist(setlistText).join("\n")}
+                    onClick={() => setSetlistText(normalizedSetlist)}
+                  >
+                    曲名を公式表記に変換
+                  </button>
+                </div>
               </div>
 
             </div> : <div className="beforeTripNote">写真と実費は遠征後に追加できます。まずは予定を保存しておこう。</div>}
@@ -728,6 +820,13 @@ export default function TicketApp({ username }: { username: string }) {
             <PassportNotes pageRef={backRef} {...notesProps} />
           </div>
 
+          {ticketSide === "back" && status === "completed" && setlistFmId && (
+            <section className="passportSetlist" aria-label="公演のセットリスト">
+              <b>SETLIST / 公演のセットリスト</b>
+              <SetlistSearch key={setlistFmId} artist={oshi} date={date} concertId={setlistFmId} />
+            </section>
+          )}
+
           <StayInsights key={`${destination}/${date}/${referenceYear}`} prefecture={destination} date={date} year={referenceYear} />
           {currentDataError && <p className="dataSourceNote" role="status">{currentDataError}<button type="button" onClick={() => { setPinnedBenchmark(null); setDataRefresh((value) => value + 1); }}>再試行</button></p>}
           <button className="collectionSaveButton" onClick={saveTicket} disabled={savingTicket || !benchmark || !!storageError}>
@@ -744,6 +843,8 @@ export default function TicketApp({ username }: { username: string }) {
           <LodgingInfo key={`${venue?.latitude}/${venue?.longitude}`} venue={venue} />
 
           <PassportProgress records={savedTickets} onOpen={(record) => { setSelectedTicket(record); setSelectedSide("front"); }} />
+
+          <JourneyGps tickets={savedTickets} />
 
           <div className="collectionSection">
 
@@ -814,7 +915,35 @@ export default function TicketApp({ username }: { username: string }) {
               <span>YOUR MEMORY</span>
               <p>{selectedTicket.memory || "写真と思い出は遠征後に追加できます。"}</p>
             </div>
-          </div>{selectedTicket.venue && <><p className="savedVenue"><MapPin size={15} />{selectedTicket.venue.name}</p><NearbyMap venue={selectedTicket.venue} /></>}{selectedTicket.status === "planned" && <button className="downloadButton" onClick={() => editTicket(selectedTicket, true)}>
+            {selectedTicket.outfit && (
+              <div className="ticketModalMemory">
+                <span>服装</span>
+                {selectedTicket.outfit.genre && (
+                  <strong>
+                    {artistGenres.includes(selectedTicket.outfit.genre) ? "アーティストのジャンル" : "以前の服装分類"} · {selectedTicket.outfit.genre}
+                  </strong>
+                )}
+                {selectedTicket.outfit.details && <p>{selectedTicket.outfit.details}</p>}
+              </div>
+            )}
+            {selectedTicket.setlist && selectedTicket.setlist.length > 0 && (
+              <div className="ticketModalMemory">
+                <span>セットリスト</span>
+                <ol className="ticketSetlist">
+                  {selectedTicket.setlist.map((song, index) => (
+                    <li key={index}>{song}</li>
+                  ))}
+                </ol>
+              </div>
+            )}
+          </div>
+          {selectedSide === "back" && selectedTicket.setlistFmId && (
+            <section className="passportSetlist" aria-label="公演のセットリスト">
+              <b>SETLIST / 公演のセットリスト</b>
+              <SetlistSearch key={selectedTicket.setlistFmId} artist={selectedTicket.oshi} date={selectedTicket.date} concertId={selectedTicket.setlistFmId} />
+            </section>
+          )}
+          {selectedTicket.venue && <><p className="savedVenue"><MapPin size={15} />{selectedTicket.venue.name}</p><NearbyMap venue={selectedTicket.venue} /></>}{selectedTicket.status === "planned" && <button className="downloadButton" onClick={() => editTicket(selectedTicket, true)}>
             <Pencil size={16} />写真・実費を記録する</button>}<button className="ticketModalCloseButton" onClick={() => editTicket(selectedTicket)}>{selectedTicket.status === "planned" ? "予定の内容を編集する" : "記録を編集する"}</button>
           <button className="modalDismissButton" onClick={() => setSelectedTicket(null)}>閉じる</button>
         </div>

@@ -10,8 +10,6 @@ type Field = {
   label: string;
   type: "text" | "password";
   autoComplete: string;
-  inputMode?: "numeric";
-  maxLength?: number;
   help?: string;
 };
 
@@ -25,13 +23,11 @@ const fields: Record<Props["mode"], Field[]> = {
   login: [
     { name: "username", label: "ユーザーID", type: "text", autoComplete: "username" },
     { name: "password", label: "パスワード", type: "password", autoComplete: "current-password" },
-    { name: "loginCode", label: "ログイン用コード（6桁）", type: "password", autoComplete: "off", inputMode: "numeric", maxLength: 6 },
   ],
   signup: [
     { name: "username", label: "ユーザーID", type: "text", autoComplete: "username", help: "半角英数字と . _ - で3〜64文字" },
     { name: "password", label: "パスワード", type: "password", autoComplete: "new-password", help: "8文字以上" },
     { name: "confirmPassword", label: "パスワード（確認）", type: "password", autoComplete: "new-password" },
-    { name: "loginCode", label: "ログイン用コード（6桁）", type: "password", autoComplete: "off", inputMode: "numeric", maxLength: 6, help: "ログインのたびに入力する数字6桁を決めてください" },
   ],
 };
 
@@ -66,8 +62,6 @@ export default function AuthForm({ mode, action, notice }: Props) {
                 name={field.name}
                 type={field.type}
                 autoComplete={field.autoComplete}
-                inputMode={field.inputMode}
-                maxLength={field.maxLength}
                 defaultValue={field.name === "username" ? state.username : undefined}
               />
               {field.help && <p className={"authHelp"}>{field.help}</p>}

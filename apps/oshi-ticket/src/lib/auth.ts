@@ -16,10 +16,9 @@ type UserRow = {
   id: number;
   username: string;
   password_hash: string;
-  login_code_hash: string;
 };
 
-// パスワードとログイン用コードは scrypt でハッシュ化して保存する（形式: salt:hash）
+// パスワードは scrypt でハッシュ化して保存する（形式: salt:hash）
 function hashSecret(value: string) {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(value, salt, 64).toString("hex");
@@ -41,12 +40,12 @@ function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export function createUser(username: string, password: string, loginCode: string) {
+export function createUser(username: string, password: string) {
   const db = getDb();
   try {
     db.prepare(
-      "INSERT INTO users (username, password_hash, login_code_hash, created_at) VALUES (?, ?, ?, ?)"
-    ).run(username, hashSecret(password), hashSecret(loginCode), Date.now());
+      "INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)"
+    ).run(username, hashSecret(password), Date.now());
     return true;
   } catch (error) {
     if (error instanceof Error && error.message.includes("UNIQUE constraint failed")) {
@@ -56,14 +55,13 @@ export function createUser(username: string, password: string, loginCode: string
   }
 }
 
-export function authenticate(username: string, password: string, loginCode: string) {
+export function authenticate(username: string, password: string) {
   const row = getDb()
-    .prepare("SELECT id, username, password_hash, login_code_hash FROM users WHERE username = ?")
+    .prepare("SELECT id, username, password_hash FROM users WHERE username = ?")
     .get(username) as UserRow | undefined;
 
   const passwordOk = verifySecret(password, row?.password_hash ?? DUMMY_HASH);
-  const codeOk = verifySecret(loginCode, row?.login_code_hash ?? DUMMY_HASH);
-  if (!row || !passwordOk || !codeOk) return null;
+  if (!row || !passwordOk) return null;
 
   return { id: row.id, username: row.username } satisfies CurrentUser;
 }

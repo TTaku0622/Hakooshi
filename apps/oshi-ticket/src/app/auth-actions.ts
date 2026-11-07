@@ -15,17 +15,15 @@ function text(formData: FormData, name: string) {
 export async function login(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const username = text(formData, "username").trim();
   const password = text(formData, "password");
-  const loginCode = text(formData, "loginCode");
 
   const errors: string[] = [];
   if (!username) errors.push("ユーザーIDを入力してください。");
   if (!password) errors.push("パスワードを入力してください。");
-  if (!loginCode) errors.push("ログイン用コードを入力してください。");
   if (errors.length) return { errors, username };
 
-  const user = authenticate(username, password, loginCode);
+  const user = authenticate(username, password);
   if (!user) {
-    return { errors: ["ユーザーID・パスワード・ログイン用コードのいずれかが違います。"], username };
+    return { errors: ["ユーザーIDかパスワードが違います。"], username };
   }
 
   await startSession(user.id);
@@ -36,7 +34,6 @@ export async function signup(_prev: AuthFormState, formData: FormData): Promise<
   const username = text(formData, "username").trim();
   const password = text(formData, "password");
   const confirmPassword = text(formData, "confirmPassword");
-  const loginCode = text(formData, "loginCode");
 
   const errors: string[] = [];
   if (!/^[A-Za-z0-9_.-]{3,64}$/.test(username)) {
@@ -48,12 +45,9 @@ export async function signup(_prev: AuthFormState, formData: FormData): Promise<
   if (password !== confirmPassword) {
     errors.push("パスワードが一致しません。");
   }
-  if (!/^\d{6}$/.test(loginCode)) {
-    errors.push("ログイン用コードは半角数字6桁で入力してください。");
-  }
   if (errors.length) return { errors, username };
 
-  if (!createUser(username, password, loginCode)) {
+  if (!createUser(username, password)) {
     return { errors: ["このユーザーIDは既に使われています。"], username };
   }
 

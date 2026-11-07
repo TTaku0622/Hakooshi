@@ -48,3 +48,6 @@ next-env.d.ts
 
 # 開発用バックアップファイル
 *-backup.*
+
+# ログイン用のローカル DB
+/.local/

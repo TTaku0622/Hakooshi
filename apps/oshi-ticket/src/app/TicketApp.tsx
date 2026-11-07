@@ -1,25 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toPng } from "html-to-image";
-import { Download, MapPin, Sparkles, Ticket, Bookmark, Trash2, Plus, Pencil, ArrowRight, LogOut } from "lucide-react";
 import { logout } from "./auth-actions";
-import { BoardingTicket, TICKET_WIDTH, TICKET_HEIGHT } from "./boarding-ticket";
-import { TicketBack } from "./ticket-back";
+import { toPng } from "html-to-image";
+import { Download, MapPin, Sparkles, BookOpen, Bookmark, Trash2, Plus, Pencil, LogOut } from "lucide-react";
+import { PassportSpread, IdentityPage, VisaPage, PASSPORT_WIDTH, PASSPORT_HEIGHT, travelModeNames, type PassportSpreadProps, type TravelMode } from "./passport-spread";
+import { PassportNotes, DestinationNotesPage, MyJourneyPage, type PassportNotesProps } from "./passport-notes";
+import { PassportBook } from "./passport-book";
+import { PassportProgress } from "./passport-progress";
+import { railways, ferryFacts } from "./travel-data";
 import { ArtistSearch } from "./artist-search";
+import { StayInsights } from "./stay-insights";
+import { OshiColors } from "./oshi-colors";
+import { VenueSearch } from "./venue-search";
+import { NearbyMap } from "./nearby-map";
+import { LodgingInfo } from "./lodging-info";
+import type { Venue } from "./map-utils";
 import { prefectureFlagColors } from "./prefecture-colors";
-import { prefectures, tourismYears, parseActualTotal, yen, type SavedTicket, type TourismData, type TripType, type TripStatus, type TicketSide } from "./trip-data";
-
-const colors = [
-  { name: "ピンク", value: "#ed83aa" },
-  { name: "ブルー", value: "#65a9e8" },
-  { name: "パープル", value: "#a48ae8" },
-  { name: "レッド", value: "#e66b75" },
-  { name: "イエロー", value: "#e9c45d" },
-  { name: "グリーン", value: "#71b99a" },
-  { name: "オレンジ", value: "#e99a5b" },
-  { name: "ホワイト", value: "#d8d8d8" },
-];
+import { prefectures, tourismYears, parseActualTotal, type SavedTicket, type TourismData, type TripType, type TripStatus, type TicketSide } from "./trip-data";
 
 function hashString(value: string) {
 
@@ -162,6 +160,10 @@ export default function TicketApp({ username }: { username: string }) {
   const [oshi, setOshi] = useState("");
 
   const [event, setEvent] = useState("");
+  const [venue, setVenue] = useState<Venue | null>(null);
+  const [travelMode, setTravelMode] = useState<TravelMode>("other");
+  const [railwayId, setRailwayId] = useState("");
+  const [ferryRoute, setFerryRoute] = useState("");
 
   const [date, setDate] = useState("");
 
@@ -295,11 +297,9 @@ export default function TicketApp({ username }: { username: string }) {
   }, [selectedTicket]);
 
 
-  const originFeature = useMemo(() => mapFeatures.find((feature) => feature.properties.N03_001 === origin), [mapFeatures, origin]);
 
   const destinationFeature = useMemo(() => mapFeatures.find((feature) => feature.properties.N03_001 === destination), [mapFeatures, destination]);
 
-  const originPath = originFeature ? geometryToSvgPath(originFeature.geometry, 58, 88) : "";
 
   const destinationPath = destinationFeature ? geometryToSvgPath(destinationFeature.geometry, 58, 88) : "";
 
@@ -394,7 +394,7 @@ export default function TicketApp({ username }: { username: string }) {
 
 
   const renderTicket = (node: HTMLDivElement, pixelRatio: number) => toPng(node, {
-    width: TICKET_WIDTH, height: TICKET_HEIGHT, style: { transform: "none" }, pixelRatio, cacheBust: true,
+    width: PASSPORT_WIDTH, height: PASSPORT_HEIGHT, style: { transform: "none" }, pixelRatio, cacheBust: true,
   });
 
 
@@ -418,13 +418,13 @@ export default function TicketApp({ username }: { username: string }) {
     }
 
     if (editingId !== null && !savedTickets.some((ticket) => ticket.id === editingId)) {
-      setNotice({ type: "error", text: "編集中のチケットが見つかりません。新規作成から登録してください。" });
+      setNotice({ type: "error", text: "編集中の訪問ページが見つかりません。新規作成から登録してください。" });
       return;
     }
 
     const snapshot = {
       id: editingId ?? Date.now(), oshi: oshi.trim(), event: event.trim(), origin, destination, date, color,
-      memory, photo,
+      memory, photo, venue: venue ?? undefined, travelMode, railwayId, ferryRoute, format: "passport" as const,
       status, tripType, actualTotal: actualTotal.trim(), benchmark,
     };
 
@@ -448,7 +448,7 @@ export default function TicketApp({ username }: { username: string }) {
 
       setPinnedBenchmark(benchmark);
 
-      setNotice({ type: "success", text: editingId !== null ? "チケットを更新しました。" : status === "planned" ? "遠征の予定を保存しました。帰ってきたら写真と実費を追記できます。" : "遠征の思い出を保存しました。" });
+      setNotice({ type: "success", text: editingId !== null ? "訪問ページを更新しました。" : status === "planned" ? "遠征の予定を保存しました。帰ってきたら写真と実費を追記できます。" : "遠征の思い出を保存しました。" });
     } catch {
 
       setNotice({ type: "error", text: "保存できませんでした。ブラウザの保存容量を確認してください。" });
@@ -463,6 +463,8 @@ export default function TicketApp({ username }: { username: string }) {
     setEditingId(null);
     setOshi("");
     setEvent("");
+    setVenue(null);
+    setTravelMode("other"); setRailwayId(""); setFerryRoute("");
     setDate("");
     setMemory("");
     setPhoto("");
@@ -486,6 +488,8 @@ export default function TicketApp({ username }: { username: string }) {
     setEditingId(ticket.id);
     setOshi(ticket.oshi);
     setEvent(ticket.event);
+    setVenue(ticket.venue ?? null);
+    setTravelMode(ticket.travelMode ?? "other"); setRailwayId(ticket.railwayId ?? ""); setFerryRoute(ticket.ferryRoute ?? "");
     setOrigin(ticket.origin);
     setDestination(ticket.destination);
 
@@ -513,7 +517,7 @@ export default function TicketApp({ username }: { username: string }) {
 
   const deleteTicket = (id: number) => {
 
-    if (!confirm("このチケットを削除しますか？")) return;
+    if (!confirm("この訪問ページを削除しますか？")) return;
 
     try {
 
@@ -525,7 +529,7 @@ export default function TicketApp({ username }: { username: string }) {
 
       if (editingId === id) startNewTrip();
     } catch {
-      setNotice({ type: "error", text: "チケットを削除できませんでした。" });
+      setNotice({ type: "error", text: "訪問ページを削除できませんでした。" });
     }
   };
 
@@ -544,7 +548,7 @@ export default function TicketApp({ username }: { username: string }) {
 
       const link = document.createElement("a");
 
-      link.download = `oshi-ticket-${date || "memory"}-${ticketSide}.png`;
+      link.download = `oshi-passport-${date || "memory"}-${ticketSide}.png`;
       link.href = dataUrl;
       link.click();
     } catch {
@@ -555,6 +559,9 @@ export default function TicketApp({ username }: { username: string }) {
     }
   };
 
+  // パスポートの各ページに渡す内容（画面のめくれる本と、PNG 保存用の見開きで共通）
+  const spreadProps: PassportSpreadProps = { origin, destination, oshi, event, venueName: venue?.name, date, memory: status === "planned" ? "" : memory, photo: status === "completed" ? photo : "", color, seed, destinationPath, status, travelMode, ferryName: travelMode === "ferry" ? ferryRoute || "船旅" : undefined };
+  const notesProps: PassportNotesProps = { destination, color, date, status, data: benchmark, actualTotal: actualValue, memory, travelMode, railway: railways.find((r) => r.id === railwayId), ferryRoute };
 
   return (
     <main className="page">
@@ -562,27 +569,20 @@ export default function TicketApp({ username }: { username: string }) {
       <header className="header">
         <div className="logo">
           <span className="logoIcon">
-            <Ticket size={21} />
+            <BookOpen size={21} />
           </span>
-          <span>OSHI JOURNEY</span>
+          <span>OSHI PASSPORT</span>
         </div>
-        <div className="headerUser">
-          <span>{username}</span>
-          <form action={logout}>
-            <button type="submit" className="logoutButton">
-              <LogOut size={14} /> ログアウト
-            </button>
-          </form>
-        </div>
+        <div className="headerUser"><span>{username}</span><form action={logout}><button type="submit" className="logoutButton"><LogOut size={14} />ログアウト</button></form></div>
       </header>
 
       <section className="hero">
         <div className="eyebrow">
           <Sparkles size={14} /> A JOURNEY TO YOUR OSHI</div>
         <h1>推しに会う旅を、<br />
-          <span>準備から思い出まで。</span>
+          <span>パスポートに刻もう。</span>
         </h1>
-        <p>遠征前は、目的地の費用目安をチェック。<br />帰ってきたら写真と実費を加えて、一枚の記録に。</p>
+        <p>遠征前は、旅先の宿泊傾向と寄り道をチェック。<br />帰ってきたら写真と実費を加えて、訪問スタンプを増やそう。</p>
       </section>
 
       <div className="workspace">
@@ -595,11 +595,11 @@ export default function TicketApp({ username }: { username: string }) {
               <span className="step">01</span>
               <div>
                 <h2>{status === "planned" ? "遠征を準備する" : "思い出を記録する"}</h2>
-                <p>{editingId !== null ? "保存済みのチケットを編集中です。" : "チケットの情報を入力してください。"}</p>
+                <p>{editingId !== null ? "保存済みの訪問ページを編集中です。" : "訪問ページの情報を入力してください。"}</p>
               </div>
             </div>
             {editingId !== null && <div className="editingBanner">
-              <Pencil size={14} />チケットを編集中<button type="button" onClick={startNewTrip}>新規作成に戻る</button>
+              <Pencil size={14} />訪問ページを編集中<button type="button" onClick={startNewTrip}>新規作成に戻る</button>
             </div>}
             <div className="tripPhase" aria-label="遠征の状態">
               <button type="button" aria-pressed={status === "planned"} onClick={() => setStatus("planned")}>遠征前・予定</button>
@@ -613,6 +613,11 @@ export default function TicketApp({ username }: { username: string }) {
               </label>
               <input id="event" value={event} onChange={(e) => setEvent(e.target.value)} placeholder="例：SPECIAL LIVE 2026" maxLength={40} required />
             </div>
+
+            <VenueSearch key={editingId ?? "new-venue"} value={venue} onChange={setVenue} onSelect={(selected) => {
+                setVenue(selected);
+                if (selected.prefecture && prefectures.includes(selected.prefecture)) { setDestination(selected.prefecture); setPinnedBenchmark(null); }
+            }} />
 
             <div className="field">
               <label htmlFor="date">公演・遠征の日付 <span className="requiredMark">必須</span>
@@ -633,12 +638,28 @@ export default function TicketApp({ username }: { username: string }) {
               <label htmlFor="destination">遠征先の都道府県</label>
               <div className="selectWrap">
                 <MapPin size={16} />
-                <select id="destination" value={destination} onChange={(e) => { setDestination(e.target.value); setPinnedBenchmark(null); }}>{prefectures.map((p) =>
+                <select id="destination" value={destination} onChange={(e) => { setDestination(e.target.value); setPinnedBenchmark(null); if (venue?.prefecture && venue.prefecture !== e.target.value) setVenue(null); }}>{prefectures.map((p) =>
                   <option key={p}>{p}</option>)}</select>
               </div>
               <p className="destinationColorHint">
                 <span style={{ backgroundColor: prefectureFlagColors[destination] }} />{destination}の旗色をグラデーションに使います</p>
             </div>
+
+            <div className="field">
+              <label htmlFor="travelMode">主な移動手段</label>
+              <select id="travelMode" value={travelMode} onChange={(e) => setTravelMode(e.target.value as TravelMode)}>{Object.entries(travelModeNames).map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select>
+            </div>
+            {travelMode === "train" && <div className="field">
+              <label htmlFor="railway">利用した鉄道・路線（任意）</label>
+              <select id="railway" value={railwayId} onChange={(e) => setRailwayId(e.target.value)}><option value="">事業者・路線を選択</option>{railways.map((railway) => <option key={railway.id} value={railway.id}>{railway.name} / {railway.jurisdiction}</option>)}</select>
+              <p className="fieldHint">旅先ノートに旅客営業キロを記録します。事業者・路線全体の統計で、今回の乗車距離ではありません。</p>
+            </div>}
+            {travelMode === "ferry" && <div className="field">
+              <label htmlFor="ferryRoute">利用した船・航路（任意）</label>
+              <input id="ferryRoute" maxLength={40} value={ferryRoute} onChange={(e) => setFerryRoute(e.target.value)} placeholder="例：宮島口〜宮島" />
+              <p className="fieldHint">船旅スタンプはご自身の利用記録に基づきます。公開航路データは地方単位に匿名化されており、実際の乗船確認には使いません。</p>
+              <p className="ferryLearning">{ferryFacts(destination).region}を起終点に含む申請サンプル：{ferryFacts(destination).samples}件<br /><a href={ferryFacts(destination).sourceUrl} target="_blank" rel="noreferrer">Project LINKS 一般旅客定期航路事業データ</a> / 現在の航路数ではありません。</p>
+            </div>}
 
             <div className="field">
               <label htmlFor="tripType">旅行の種類</label>
@@ -649,16 +670,12 @@ export default function TicketApp({ username }: { username: string }) {
             </div>
 
             <div className="field">
-              <label htmlFor="referenceYear">参考にする統計年</label>
+              <label htmlFor="referenceYear">宿泊需要を比較する年（Project LINKS）</label>
               <select id="referenceYear" value={referenceYear} onChange={(e) => { setReferenceYear(Number(e.target.value)); setPinnedBenchmark(null); }}>{tourismYears.map((year, i) =>
                 <option key={year} value={year}>{year}年{i === 0 ? "（収録データの最新年）" : ""}</option>)}</select>
             </div>
 
-            <div className="field">
-              <label>推しカラー</label>
-              <div className="colorList">{colors.map((c) =>
-                <button key={c.value} type="button" title={c.name} aria-label={c.name} aria-pressed={color === c.value} className={`colorButton ${color === c.value ? "colorSelected" : ""}`} style={{ backgroundColor: c.value }} onClick={() => setColor(c.value)} />)}</div>
-            </div>
+            <OshiColors value={color} onChange={setColor} />
             {status === "completed" ? <div className="afterTripFields">
 
               <h3>おかえりなさい。旅を記録しよう。</h3>
@@ -666,7 +683,7 @@ export default function TicketApp({ username }: { username: string }) {
               <div className="field">
                 <label htmlFor="actualTotal">実際にかかった費用の合計（円・1人分）</label>
                 <input id="actualTotal" type="number" inputMode="numeric" min="0" step="1" value={actualTotal} onChange={(e) => setActualTotal(e.target.value)} placeholder="例：35000" aria-invalid={!!actualError} />
-                <p className="fieldHint">交通・宿泊・飲食・チケット・グッズなど、1人分の総額。未入力と0円は区別して記録します。</p>{actualError && <p className="formError">{actualError}</p>}</div>
+                <p className="fieldHint">交通・宿泊・飲食・入場券・グッズなど、1人分の総額。未入力と0円は区別して記録します。</p>{actualError && <p className="formError">{actualError}</p>}</div>
 
               <div className="field photoField">
                 <label htmlFor="ticketPhoto">遠征の思い出写真（任意）</label>
@@ -691,64 +708,65 @@ export default function TicketApp({ username }: { username: string }) {
           <div className="sectionHeading">
             <span className="step">02</span>
             <div>
-              <h2>あなただけの遠征チケット</h2>
-              <p>表面に旅の予定、裏面に参考データと実費を。</p>
+              <h2>あなただけの推し旅パスポート</h2>
+              <p>訪問スタンプと旅先の発見を、見開きのページに。</p>
             </div>
           </div>
 
-          <div className="ticketTabs" role="tablist" aria-label="チケットの面">{(["front", "back"] as const).map((side) =>
-            <button type="button" role="tab" aria-selected={ticketSide === side} key={side} onClick={() => setTicketSide(side)}>{side === "front" ? "表面 · BOARDING PASS" : "裏面 · TRAVEL NOTES"}</button>)}</div>
+          <div className="ticketTabs" role="tablist" aria-label="パスポートのページ">{(["front", "back"] as const).map((side) =>
+            <button type="button" role="tab" aria-selected={ticketSide === side} key={side} onClick={() => setTicketSide(side)}>{side === "front" ? "訪問ページ · VISAS" : "旅先ノート · NOTES"}</button>)}</div>
 
-          <div className={ticketSide !== "front" ? "ticketExportOnly" : ""} aria-hidden={ticketSide !== "front"} inert={ticketSide !== "front"}>
-            <BoardingTicket ticketRef={ticketRef} origin={origin} destination={destination} oshi={oshi} event={event} date={date} memory={status === "planned" ? "推しに会いに行く、次の旅。" : memory} photo={status === "completed" ? photo : ""} color={color} seed={seed} originPath={originPath} destinationPath={destinationPath} status={status} />
+          <PassportBook side={ticketSide} color={color} destination={destination} pages={[
+            <IdentityPage key="01" {...spreadProps} />, <VisaPage key="02" {...spreadProps} />,
+            <DestinationNotesPage key="03" {...notesProps} />, <MyJourneyPage key="04" {...notesProps} />]} />
+
+          {/* PNG 保存用の見開き（画面の外に置く） */}
+          <div className="ticketExportOnly" aria-hidden inert>
+            <PassportSpread pageRef={ticketRef} {...spreadProps} />
+          </div>
+          <div className="ticketExportOnly" aria-hidden inert>
+            <PassportNotes pageRef={backRef} {...notesProps} />
           </div>
 
-          <div className={ticketSide !== "back" ? "ticketExportOnly" : ""} aria-hidden={ticketSide !== "back"} inert={ticketSide !== "back"}>
-            <TicketBack ticketRef={backRef} destination={destination} color={color} status={status} tripType={tripType} data={benchmark} actualTotal={actualValue} memory={memory} error={currentDataError} />
-          </div>
-
-          <div className="benchmarkSummary" aria-live="polite">{benchmark ? <>
-            <div>
-              <span>{destination} / {tripType === "daytrip" ? "日帰り" : "宿泊旅行"}の参考平均</span>
-              <strong>{yen(benchmark.averages.total)}<small> / 1人・1旅行</small>
-              </strong>
-            </div>
-            <button type="button" onClick={() => setTicketSide("back")}>裏面で見る <ArrowRight size={14} />
-            </button></> : <span>{currentDataError || "目的地のProject LINKSデータを取得中…"}{currentDataError && <button type="button" onClick={() => { setPinnedBenchmark(null); setDataRefresh((value) => value + 1); }}>再試行</button>}</span>}</div>
-          {benchmark && <p className="dataSourceNote">
-            <a href={benchmark.sourceUrl} target="_blank" rel="noreferrer">出典: Project LINKS 観光統計データ（2025年度）</a> / {benchmark.year}年<br />収録CSVから取得した統計値です。現在の宿泊料金ではなく、費目別の平均も単純には合算できません。{pinnedBenchmark && " 保存時の参考値を保持しています。"}</p>}
+          <StayInsights key={`${destination}/${date}/${referenceYear}`} prefecture={destination} date={date} year={referenceYear} />
+          {currentDataError && <p className="dataSourceNote" role="status">{currentDataError}<button type="button" onClick={() => { setPinnedBenchmark(null); setDataRefresh((value) => value + 1); }}>再試行</button></p>}
           <button className="collectionSaveButton" onClick={saveTicket} disabled={savingTicket || !benchmark || !!storageError}>
-            <Bookmark size={18} />{savingTicket ? "表裏のチケットを保存中…" : editingId !== null ? "チケットを更新する" : status === "planned" ? "遠征の予定を保存する" : "遠征の思い出を保存する"}</button>
+            <Bookmark size={18} />{savingTicket ? "パスポートに記録中…" : editingId !== null ? "訪問ページを更新する" : status === "planned" ? "遠征の予定を保存する" : "遠征の思い出を保存する"}</button>
 
           <button className="downloadButton" onClick={downloadTicket} disabled={downloading}>
-            <Download size={18} />{downloading ? "画像を作成中…" : `${ticketSide === "front" ? "表面" : "裏面"}をPNGで保存`}</button>
+            <Download size={18} />{downloading ? "画像を作成中…" : `${ticketSide === "front" ? "訪問ページ" : "旅先ノート"}をPNGで保存`}</button>
           {notice && <p className={`saveNotice ${notice.type}`} role="status">{notice.text}</p>}
           {storageError && <p className="formError" role="alert">{storageError}</p>}
           {mapError && <p className="note">地図データを読み込めませんでした。再読み込みしてください。</p>}
-          <p className="note">思い出を記録する記念チケットです。入場券・乗車券としては利用できません。</p>
+          <p className="note">個人の旅の記録として楽しむ、推し旅パスポートです。</p>
+
+          <NearbyMap venue={venue} />
+          <LodgingInfo key={`${venue?.latitude}/${venue?.longitude}`} venue={venue} />
+
+          <PassportProgress records={savedTickets} onOpen={(record) => { setSelectedTicket(record); setSelectedSide("front"); }} />
 
           <div className="collectionSection">
 
             <div className="collectionHeading">
               <div>
-                <span className="collectionEyebrow">YOUR JOURNEYS</span>
-                <h2>MY COLLECTION</h2>
+                <span className="collectionEyebrow">YOUR PASSPORT</span>
+                <h2>MY JOURNEYS</h2>
               </div>
-              <span className="collectionCount">{savedTickets.length} TICKETS</span>
+              <span className="collectionCount">{savedTickets.length} JOURNEYS</span>
             </div>
 
-            <p className="collectionStorageNote">このブラウザに保存されます。予定のチケットを開くと、写真や実費を追記できます。</p>
+            <p className="collectionStorageNote">このブラウザに保存されます。予定の訪問ページを開くと、写真や実費を追記できます。</p>
 
             <div className="collectionFilters" aria-label="コレクションの絞り込み">{(["all", "planned", "completed"] as const).map((filter) =>
               <button type="button" key={filter} aria-pressed={collectionFilter === filter} onClick={() => setCollectionFilter(filter)}>{filter === "all" ? "すべて" : filter === "planned" ? "遠征予定" : "遠征済み"}</button>)}</div>
             {visibleTickets.length === 0 ? <div className="collectionEmpty">
-              <Ticket size={30} />
-              <p>まだチケットがありません。</p>
+              <BookOpen size={30} />
+              <p>まだ訪問ページがありません。</p>
               <span>次の遠征の予定から、記録を始めよう。</span>
             </div> : <div className="collectionGrid">{visibleTickets.map((ticket) =>
               <article className="collectionCard" key={ticket.id}>
-                <button type="button" className="collectionOpen" onClick={() => { setSelectedTicket(ticket); setSelectedSide("front"); }} aria-label={`${ticket.event}のチケットを開く`}>
-                  <img src={ticket.image} alt={`${ticket.event}の記念チケット`} />
+                <button type="button" className="collectionOpen" onClick={() => { setSelectedTicket(ticket); setSelectedSide("front"); }} aria-label={`${ticket.event}の訪問ページを開く`}>
+                  <img src={ticket.image} alt={`${ticket.event}の記念訪問ページ`} />
                   <div className="collectionCardInfo">
                     <span className={`tripBadge ${ticket.status ?? "completed"}`}>{ticket.status === "planned" ? "遠征予定" : "遠征済み"}</span>
                     <strong>{ticket.event || "イベント名未設定"}</strong>
@@ -757,7 +775,7 @@ export default function TicketApp({ username }: { username: string }) {
                     <small>{ticket.date || "日付未設定"}</small>
                   </div>
                 </button>
-                <button type="button" className="deleteTicketButton" onClick={() => deleteTicket(ticket.id)} aria-label={`${ticket.event}のチケットを削除`}>
+                <button type="button" className="deleteTicketButton" onClick={() => deleteTicket(ticket.id)} aria-label={`${ticket.event}の訪問ページを削除`}>
                   <Trash2 size={16} />
                 </button>
               </article>)}</div>}
@@ -770,12 +788,12 @@ export default function TicketApp({ username }: { username: string }) {
 
       </div>
       {selectedTicket && <div className="ticketModalOverlay" onClick={() => setSelectedTicket(null)}>
-        <div className="ticketModal" role="dialog" aria-modal="true" aria-label="チケットの詳細" onClick={(event) => event.stopPropagation()}>
+        <div className="ticketModal" role="dialog" aria-modal="true" aria-label="訪問ページの詳細" onClick={(event) => event.stopPropagation()}>
           <button className="ticketModalClose" onClick={() => setSelectedTicket(null)} aria-label="閉じる">×</button>
           <span className={`tripBadge ${selectedTicket.status ?? "completed"}`}>{selectedTicket.status === "planned" ? "遠征予定" : "遠征済み"}</span>
-          <h2>MY JOURNEY</h2>
-          <div className="ticketTabs" role="tablist" aria-label="保存済みチケットの面">{(["front", "back"] as const).map((side) =>
-            <button type="button" role="tab" key={side} aria-selected={selectedSide === side} onClick={() => setSelectedSide(side)}>{side === "front" ? "表面" : "裏面"}</button>)}</div>{selectedSide === "front" || selectedTicket.backImage ? <img className="ticketModalImage" src={selectedSide === "front" ? selectedTicket.image : selectedTicket.backImage} alt={`${selectedTicket.event}のチケット${selectedSide === "front" ? "表面" : "裏面"}`} /> : <p className="fieldHint">以前のチケットには裏面がありません。編集して保存すると裏面を追加できます。</p>}<div className="ticketModalDetails">
+          <h2>MY PASSPORT</h2>
+          <div className="ticketTabs" role="tablist" aria-label="保存済みパスポートのページ">{(["front", "back"] as const).map((side) =>
+            <button type="button" role="tab" key={side} aria-selected={selectedSide === side} onClick={() => setSelectedSide(side)}>{side === "front" ? "訪問ページ" : "旅先ノート"}</button>)}</div>{selectedSide === "front" || selectedTicket.backImage ? <img className="ticketModalImage" src={selectedSide === "front" ? selectedTicket.image : selectedTicket.backImage} alt={`${selectedTicket.event}の${selectedSide === "front" ? "訪問ページ" : "旅先ノート"}`} /> : <p className="fieldHint">以前の記録には旅先ノートがありません。編集して保存すると追加できます。</p>}<div className="ticketModalDetails">
             <div>
               <span>ARTIST / OSHI</span>
               <strong>{selectedTicket.oshi}</strong>
@@ -796,12 +814,12 @@ export default function TicketApp({ username }: { username: string }) {
               <span>YOUR MEMORY</span>
               <p>{selectedTicket.memory || "写真と思い出は遠征後に追加できます。"}</p>
             </div>
-          </div>{selectedTicket.status === "planned" && <button className="downloadButton" onClick={() => editTicket(selectedTicket, true)}>
+          </div>{selectedTicket.venue && <><p className="savedVenue"><MapPin size={15} />{selectedTicket.venue.name}</p><NearbyMap venue={selectedTicket.venue} /></>}{selectedTicket.status === "planned" && <button className="downloadButton" onClick={() => editTicket(selectedTicket, true)}>
             <Pencil size={16} />写真・実費を記録する</button>}<button className="ticketModalCloseButton" onClick={() => editTicket(selectedTicket)}>{selectedTicket.status === "planned" ? "予定の内容を編集する" : "記録を編集する"}</button>
           <button className="modalDismissButton" onClick={() => setSelectedTicket(null)}>閉じる</button>
         </div>
       </div>}
-      <footer className="footer">OSHI JOURNEY · POWERED BY PROJECT LINKS</footer>
+      <footer className="footer">OSHI PASSPORT · TRAVEL STORIES WITH PROJECT LINKS</footer>
 
     </main>
   );

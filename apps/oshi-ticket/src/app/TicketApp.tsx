@@ -637,7 +637,8 @@ export default function TicketApp({ username }: { username: string }) {
               <button type="button" aria-pressed={status === "completed"} onClick={() => setStatus("completed")}>遠征後・記録</button>
             </div>
 
-            <ArtistSearch key={editingId ?? "new-trip"} value={oshi} onChange={setOshi} />
+            {/* 記録を切り替えたら検索候補を消すために key を変える。兄弟の VenueSearch と同じ key にならないよう接頭辞を付ける */}
+            <ArtistSearch key={`artist-${editingId ?? "new"}`} value={oshi} onChange={setOshi} />
 
             <div className="field">
               <label htmlFor="event">イベント・ライブ名 <span className="requiredMark">必須</span>
@@ -645,7 +646,7 @@ export default function TicketApp({ username }: { username: string }) {
               <input id="event" value={event} onChange={(e) => setEvent(e.target.value)} placeholder="例：SPECIAL LIVE 2026" maxLength={40} required />
             </div>
 
-            <VenueSearch key={editingId ?? "new-venue"} value={venue} onChange={setVenue} onSelect={(selected) => {
+            <VenueSearch key={`venue-${editingId ?? "new"}`} value={venue} onChange={setVenue} onSelect={(selected) => {
                 setVenue(selected);
                 if (selected.prefecture && prefectures.includes(selected.prefecture)) { setDestination(selected.prefecture); setPinnedBenchmark(null); }
             }} />

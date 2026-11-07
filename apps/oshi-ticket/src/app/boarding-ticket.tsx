@@ -14,6 +14,7 @@ type BoardingTicketProps = {
   destination: string;
   oshi: string;
   event: string;
+  venueName?: string;
   date: string;
   memory: string;
   photo: string;
@@ -63,7 +64,7 @@ function MemoryBarcode({ seed }: { seed: number; }) {
 
 export function BoardingTicket({
   ticketRef, origin, destination, oshi, event, date, memory, photo, color,
-  seed, originPath, destinationPath, status = "completed",
+  seed, originPath, destinationPath, status = "completed", venueName = "",
 }: BoardingTicketProps) {
 
 
@@ -213,13 +214,13 @@ export function BoardingTicket({
               </div>
 
 
-              <div className="boardingField boardingEvent">
+              <div className="boardingEventRow"><div className="boardingField boardingEvent">
 
                 <span>EVENT / LIVE</span>
 
                 <strong>{event || "イベント名未設定"}</strong>
 
-              </div>
+              </div><div className="boardingField boardingEvent"><span>VENUE</span><strong title={venueName}>{venueName || "会場未設定"}</strong></div></div>
 
 
               <div className="boardingRoute">

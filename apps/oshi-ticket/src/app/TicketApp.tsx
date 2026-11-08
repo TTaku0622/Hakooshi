@@ -37,7 +37,7 @@ function sameVenue(a: Venue | undefined, b: Venue | null) {
   if (!a || !b) return false;
   if (a.id && b.id && a.source === b.source) return a.id === b.id;
   const normalize = (name: string) =>
-    name.normalize("NFKC").toLocaleLowerCase().replace(/[\\s・･_-]/g, "");
+    name.normalize("NFKC").toLocaleLowerCase().replace(/[\s・･_-]/g, "");
   if (normalize(a.name) !== normalize(b.name)) return false;
   return !a.prefecture || !b.prefecture || a.prefecture === b.prefecture;
 }
@@ -357,11 +357,11 @@ export default function TicketApp({ username }: { username: string }) {
     window.setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   };
 
-  // 保存中（PNG 化の途中）は切り替えない。押印の演出中に離れるときは、演出を待たずに保存済みのページを開く
-  // （非表示になるとアニメーションが止まり、終わりの合図が来ないため）
+  // 保存中（PNG 化の途中）は切り替えない。押印の演出中に離れるときは演出を打ち切る
+  // （非表示になるとアニメーションが止まり、終わりの合図が来ないため。保存はもう済んでいるので、移った先にモーダルは出さない）
   const switchTab = (id: PageTab) => {
     if (savingTicket) return false;
-    if (stampImpact && id !== "prepare") finishStampImpact();
+    if (stampImpact && id !== "prepare") setStampImpact(undefined);
     setActiveTab(id);
     return true;
   };
@@ -468,7 +468,8 @@ export default function TicketApp({ username }: { username: string }) {
 
   const renderTicket = (node: HTMLDivElement, pixelRatio: number, includeStamp = true) => toPng(node, {
     width: PASSPORT_WIDTH, height: PASSPORT_HEIGHT, style: { transform: "none" }, pixelRatio, cacheBust: true,
-    filter: includeStamp ? undefined : (element) => !element.classList?.contains("visitStamp") && !element.classList?.contains("ferryStamp") && !element.classList?.contains("visitStampTool"),
+    // まだ押印していない記録の画像には、スタンプとその周りの光を入れない
+    filter: includeStamp ? undefined : (element) => !["visitStamp", "ferryStamp", "visitStampTool", "passportStampAura"].some((name) => element.classList?.contains(name)),
   });
 
 
@@ -483,6 +484,14 @@ export default function TicketApp({ username }: { username: string }) {
     if (ticket) openSavedTicket(ticket);
     else setStampImpact(undefined);
   };
+
+  // 押印の演出は 0.8 秒（めくってから押すときは約 1.7 秒）。終わりの合図が来なくても保存できないままにならないよう、3 秒で打ち切る
+  useEffect(() => {
+    if (!stampImpact) return;
+    const timer = window.setTimeout(finishStampImpact, 3000);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stampImpact]);
 
   const canPressStamp = status === "completed" && !isStamped;
   const saveDisabled = savingTicket || !!stampImpact || !benchmark || !!storageError;
@@ -930,11 +939,12 @@ export default function TicketApp({ username }: { username: string }) {
               onStampPress={canPressStamp && ticketSide === "front" ? saveTicket : undefined} stampPressDisabled={saveDisabled} />,
             <DestinationNotesPage key="03" {...notesProps} />, <MyJourneyPage key="04" {...notesProps} />]} />
 
-          {canPressStamp && !savingTicket && <p className="passportStampHint">訪問ページのスタンプ欄をタッチして記録</p>}
+          {canPressStamp && !savingTicket && ticketSide === "front" && <p className="passportStampHint">訪問ページのスタンプ欄をタッチして記録</p>}
           {(savingTicket || stampImpact) && <p className="passportStampHint" role="status">{savingTicket ? "パスポートに記録中…" : "スタンプを押しています…"}</p>}
-          {!canPressStamp && !stampImpact && (
+          {/* 訪問ページではスタンプ欄をタッチして記録する。旅先ノート側（写真・実費の追記）ではボタンで記録し、訪問ページへめくってから押印する */}
+          {(!canPressStamp || ticketSide === "back") && !stampImpact && (
             <button className="collectionSaveButton" onClick={saveTicket} disabled={saveDisabled}>
-              <Bookmark size={18} />{savingTicket ? "パスポートに記録中…" : editingId !== null ? "訪問ページを更新する" : "遠征の予定を保存する"}
+              <Bookmark size={18} />{savingTicket ? "パスポートに記録中…" : canPressStamp ? "遠征の思い出を記録する" : editingId !== null ? "訪問ページを更新する" : "遠征の予定を保存する"}
             </button>
           )}
           {notice && <p className={`saveNotice ${notice.type}`} role="status">{notice.text}</p>}

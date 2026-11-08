@@ -42,7 +42,7 @@ export type PassportSpreadProps = {
 export function PassportSpread({ pageRef, ...props }: PassportSpreadProps & { pageRef: RefObject<HTMLDivElement | null> }) {
   return <PassportFrame pageRef={pageRef} color={props.color} destination={props.destination}>
     <IdentityPage {...props} />
-    <VisaPage {...props} />
+    <VisaPage {...props} showStampTool />
   </PassportFrame>;
 }
 
@@ -111,20 +111,40 @@ export function IdentityPage({ origin, destination, oshi, event, date, seed, ven
 }
 
 // 02 ページ：訪問スタンプと思い出
-export function VisaPage({ destination, date, memory, photo, destinationPath, status, travelMode, ferryName, visitCount = 0 }: PassportSpreadProps) {
+export function VisaPage({ destination, date, memory, photo, destinationPath, status, travelMode, ferryName, visitCount = 0, stampVisible = status === "completed", stampImpact, onStampLanded, onStampPress, stampPressDisabled, showStampTool }: PassportSpreadProps & {
+  stampVisible?: boolean;
+  stampImpact?: { count: number; afterPageTurn: boolean };
+  onStampLanded?: () => void;
+  onStampPress?: () => void;
+  stampPressDisabled?: boolean;
+  showStampTool?: boolean;
+}) {
+  const pressing = !!stampImpact && stampVisible;
+  const impactClass = pressing ? " visitStampImpact" : "";
   return <div className="passportPage passportVisa" data-visit-count={visitCount > 0 ? visitCount : undefined} data-visit-tier={visitTier(visitCount)} style={{ "--visit-power": Math.min(visitCount, 6) } as CSSProperties}>
       <div className="passportPageHeading"><span>VISAS / 訪問の記録</span><b>01</b></div>
-      <div
-        className={`passportStampAura ${visitTier(visitCount)}`}
-        style={{ "--visit-power": Math.min(visitCount, 6) } as CSSProperties}
-      >
-        <VisitSparkles count={visitCount} />
-        <div className={`visitStamp ${status}`} style={{ color: prefectureFlagColors[destination] }}>
-          <span>{status === "planned" ? "NEXT DESTINATION" : "VISITED WITH MY OSHI"}</span><Globe2 size={25} /><strong>{destination}</strong><b>{date ? date.replaceAll("-", ".") : "COMING SOON"}</b><small>{status === "planned" ? "旅の予定" : "訪問の思い出"}</small>
-          {visitCount > 0 && <em>{visitCount} {visitCount === 1 ? "VISIT" : "VISITS"}</em>}
-        </div>
+      <div className={`visitStampSlot${pressing && stampImpact.afterPageTurn ? " visitStampAfterPageTurn" : ""}`}>
+        {stampVisible && visitCount > 0 && (
+          <div className={`passportStampAura ${visitTier(visitCount)}`} style={{ position: "absolute", margin: 0, "--visit-power": Math.min(visitCount, 6) } as CSSProperties}>
+            <VisitSparkles count={visitCount} />
+          </div>
+        )}
+        {onStampPress && (
+          <button type="button" className="visitStampTarget" onClick={onStampPress} disabled={stampPressDisabled}>
+            ここをタッチ
+          </button>
+        )}
+        {stampVisible && (
+          <div key={stampImpact?.count} className={`visitStamp visitStampSeal${impactClass}`}
+            onAnimationEnd={(event) => { if (event.animationName === "visitStampImpact") onStampLanded?.(); }}>
+            <span>VISITED WITH MY OSHI</span><Globe2 size={25} /><strong>{destination}</strong><b>{date.replaceAll("-", ".")}</b><small>訪問の思い出</small>
+            {visitCount > 0 && <em>{visitCount} {visitCount === 1 ? "VISIT" : "VISITS"}</em>}
+          </div>
+        )}
+        {pressing && <div className="visitStampTool visitStampToolPressing" aria-hidden="true" />}
+        {stampVisible && showStampTool && <div className="visitStampTool visitStampToolSnapshot" aria-hidden="true" />}
       </div>
-      {travelMode === "ferry" && ferryName && <div className={`ferryStamp ${status}`}><Ship size={22} /><span>SEA JOURNEY<small>{status === "planned" ? "船旅の予定" : "船旅の記録"}</small></span></div>}
+      {stampVisible && travelMode === "ferry" && ferryName && <div className="ferryStamp"><Ship size={22} /><span>SEA JOURNEY<small>船旅の記録</small></span></div>}
       <div className="passportMemoryPhoto">{photo ? <img src={photo} alt="旅の思い出" /> : <><svg viewBox="0 0 58 88" aria-label={`${destination}の地図`} role="img"><path d={destinationPath} fill="currentColor" fillOpacity=".13" stroke="currentColor" strokeWidth=".6" fillRule="evenodd" /></svg><span>{status === "planned" ? "帰ってきたら、ここに思い出の一枚を。" : "この旅の写真を残そう。"}</span></>}</div>
       <p className="passportMemoryText">{memory || "推しに会うたび、世界が少し広がっていく。"}</p>
       <div className="passportPageFoot"><span>YOUR OSHI. YOUR JOURNEY.</span><span>02</span></div>

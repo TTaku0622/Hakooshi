@@ -62,8 +62,11 @@ export const PassportCoverIntro = memo(function PassportCoverIntro({ username, o
     const overflow = root.style.overflow;
     root.style.overflow = "hidden";
     // 後ろの画面のボタンなどが一緒に押されないよう、ほかより先に受け取って止める
+    // 表紙の中のボタン（スキップ・音ありで再生）の Enter・スペースは、そのボタン自身に任せる
     const skipByKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
+      const insideIntro = event.target instanceof Node && !!overlayRef.current?.contains(event.target);
+      const activatesBehind = (event.key === "Enter" || event.key === " ") && !insideIntro;
+      if (event.key !== "Escape" && !activatesBehind) return;
       event.preventDefault();
       event.stopPropagation();
       setSkipping(true);

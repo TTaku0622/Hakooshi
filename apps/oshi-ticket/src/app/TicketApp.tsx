@@ -1029,7 +1029,11 @@ export default function TicketApp({ username }: { username: string }) {
           {!showSaveButton && (savingTicket || stampImpact) && <p className="passportStampHint" role="status">{savingTicket ? "パスポートに記録中…" : "スタンプを押しています…"}</p>}
           {/* 訪問ページではスタンプ欄をタッチして記録する。旅先ノート側（写真・実費の追記）ではボタンで記録し、訪問ページへめくってから押印する */}
           {showSaveButton && (
-            <button className="collectionSaveButton" onClick={saveTicket} disabled={saveDisabled}>
+            <button className="collectionSaveButton" onClick={() => {
+              // 旅先ノート側から記録すると訪問ページへめくって押印するので、押した瞬間に効果音を用意しておく
+              preparePassportSounds();
+              void saveTicket();
+            }} disabled={saveDisabled}>
               <Bookmark size={18} />{savingTicket ? "パスポートに記録中…" : canPressStamp ? "遠征の思い出を記録する" : editingId !== null ? "訪問ページを更新する" : "遠征の予定を保存する"}
             </button>
           )}

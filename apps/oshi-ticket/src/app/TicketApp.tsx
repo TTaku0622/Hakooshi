@@ -175,6 +175,8 @@ export default function TicketApp({ username }: { username: string }) {
   const backRef = useRef<HTMLDivElement>(null);
 
   const formRef = useRef<HTMLElement>(null);
+  const passportTabsRef = useRef<HTMLDivElement>(null);
+  const [stampImpact, setStampImpact] = useState<{ count: number; afterPageTurn: boolean; ticketId: number }>();
 
   const [origin, setOrigin] = useState("東京都");
 
@@ -227,6 +229,9 @@ export default function TicketApp({ username }: { username: string }) {
   const [savingTicket, setSavingTicket] = useState(false);
 
   const [editingId, setEditingId] = useState<number | null>(null);
+  const savedVisit = savedTickets.find((ticket) => ticket.id === editingId);
+  const isStamped = status === "completed" && !!savedVisit && savedVisit.status !== "planned"
+    && savedVisit.destination === destination && savedVisit.date === date;
 
   const [collectionFilter, setCollectionFilter] = useState<"all" | TripStatus>("all");
 
@@ -443,10 +448,26 @@ export default function TicketApp({ username }: { username: string }) {
   };
 
 
-  const renderTicket = (node: HTMLDivElement, pixelRatio: number) => toPng(node, {
+  const renderTicket = (node: HTMLDivElement, pixelRatio: number, includeStamp = true) => toPng(node, {
     width: PASSPORT_WIDTH, height: PASSPORT_HEIGHT, style: { transform: "none" }, pixelRatio, cacheBust: true,
+    filter: includeStamp ? undefined : (element) => !element.classList?.contains("visitStamp") && !element.classList?.contains("ferryStamp") && !element.classList?.contains("visitStampTool"),
   });
 
+
+  const openSavedTicket = (ticket: SavedTicket) => {
+    setStampImpact(undefined);
+    setSelectedSide("front");
+    setSelectedTicket(ticket);
+  };
+
+  const finishStampImpact = () => {
+    const ticket = savedTickets.find((record) => record.id === stampImpact?.ticketId);
+    if (ticket) openSavedTicket(ticket);
+    else setStampImpact(undefined);
+  };
+
+  const canPressStamp = status === "completed" && !isStamped;
+  const saveDisabled = savingTicket || !!stampImpact || !benchmark || !!storageError;
 
   const saveTicket = async () => {
 
@@ -467,7 +488,7 @@ export default function TicketApp({ username }: { username: string }) {
       return;
     }
 
-    if (editingId !== null && !savedTickets.some((ticket) => ticket.id === editingId)) {
+    if (editingId !== null && !savedVisit) {
       setNotice({ type: "error", text: "編集中の訪問ページが見つかりません。新規作成から登録してください。" });
       return;
     }
@@ -504,6 +525,21 @@ export default function TicketApp({ username }: { username: string }) {
 
       setPinnedBenchmark(benchmark);
 
+      if (ticket.status === "completed" && !isStamped) {
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        setTicketSide("front");
+        if (reduceMotion) {
+          openSavedTicket(ticket);
+        } else {
+          setStampImpact((last) => ({
+            count: (last?.count ?? 0) + 1,
+            afterPageTurn: ticketSide === "back",
+            ticketId: ticket.id,
+          }));
+          passportTabsRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+        }
+      }
+
       const savedMessage = editingId !== null ? "訪問ページを更新しました。" : status === "planned" ? "遠征の予定を保存しました。帰ってきたら写真と実費を追記できます。" : "遠征の思い出を保存しました。";
       setNotice({ type: "success", text: newlyEarnedBadges.length ? `${savedMessage} バッジ獲得：${newlyEarnedBadges.map((badge) => `「${badge.name}」`).join("、")}` : savedMessage });
     } catch {
@@ -516,6 +552,7 @@ export default function TicketApp({ username }: { username: string }) {
 
 
   const startNewTrip = () => {
+    setStampImpact(undefined);
 
     setEditingId(null);
     setOshi("");
@@ -546,6 +583,7 @@ export default function TicketApp({ username }: { username: string }) {
 
 
   const editTicket = (ticket: SavedTicket, complete = false) => {
+    setStampImpact(undefined);
 
     setEditingId(ticket.id);
     setOshi(ticket.oshi);
@@ -611,7 +649,7 @@ export default function TicketApp({ username }: { username: string }) {
 
     try {
 
-      const dataUrl = await renderTicket(node, 3);
+      const dataUrl = await renderTicket(node, 3, isStamped);
 
       const link = document.createElement("a");
 
@@ -692,7 +730,7 @@ export default function TicketApp({ username }: { username: string }) {
               <Pencil size={14} />訪問ページを編集中<button type="button" onClick={startNewTrip}>新規作成に戻る</button>
             </div>}
             <div className="tripPhase" aria-label="遠征の状態">
-              <button type="button" aria-pressed={status === "planned"} onClick={() => setStatus("planned")}>遠征前・予定</button>
+              <button type="button" aria-pressed={status === "planned"} onClick={() => { setStampImpact(undefined); setStatus("planned"); }}>遠征前・予定</button>
               <button type="button" aria-pressed={status === "completed"} onClick={() => setStatus("completed")}>遠征後・記録</button>
             </div>
 
@@ -865,12 +903,22 @@ export default function TicketApp({ username }: { username: string }) {
             </div>
           </div>
 
-          <div className="ticketTabs" role="tablist" aria-label="パスポートのページ">{(["front", "back"] as const).map((side) =>
+          <div ref={passportTabsRef} className="ticketTabs" role="tablist" aria-label="パスポートのページ">{(["front", "back"] as const).map((side) =>
             <button type="button" role="tab" aria-selected={ticketSide === side} key={side} onClick={() => setTicketSide(side)}>{side === "front" ? "訪問ページ · VISAS" : "旅先ノート · NOTES"}</button>)}</div>
 
           <PassportBook side={ticketSide} color={color} destination={destination} pages={[
-            <IdentityPage key="01" {...spreadProps} />, <VisaPage key="02" {...spreadProps} />,
+            <IdentityPage key="01" {...spreadProps} />, <VisaPage key="02" {...spreadProps} stampVisible={isStamped} stampImpact={stampImpact} onStampLanded={finishStampImpact}
+              onStampPress={canPressStamp && ticketSide === "front" ? saveTicket : undefined} stampPressDisabled={saveDisabled} />,
             <DestinationNotesPage key="03" {...notesProps} />, <MyJourneyPage key="04" {...notesProps} />]} />
+
+          {canPressStamp && !savingTicket && <p className="passportStampHint">訪問ページのスタンプ欄をタッチして記録</p>}
+          {(savingTicket || stampImpact) && <p className="passportStampHint" role="status">{savingTicket ? "パスポートに記録中…" : "スタンプを押しています…"}</p>}
+          {!canPressStamp && !stampImpact && (
+            <button className="collectionSaveButton" onClick={saveTicket} disabled={saveDisabled}>
+              <Bookmark size={18} />{savingTicket ? "パスポートに記録中…" : editingId !== null ? "訪問ページを更新する" : "遠征の予定を保存する"}
+            </button>
+          )}
+          {notice && <p className={`saveNotice ${notice.type}`} role="status">{notice.text}</p>}
 
           {/* PNG 保存用の見開き（画面の外に置く） */}
           <div className="ticketExportOnly" aria-hidden inert>
@@ -889,12 +937,8 @@ export default function TicketApp({ username }: { username: string }) {
 
           <StayInsights key={`${destination}/${date}/${referenceYear}`} prefecture={destination} date={date} year={referenceYear} />
           {currentDataError && <p className="dataSourceNote" role="status">{currentDataError}<button type="button" onClick={() => { setPinnedBenchmark(null); setDataRefresh((value) => value + 1); }}>再試行</button></p>}
-          <button className="collectionSaveButton" onClick={saveTicket} disabled={savingTicket || !benchmark || !!storageError}>
-            <Bookmark size={18} />{savingTicket ? "パスポートに記録中…" : editingId !== null ? "訪問ページを更新する" : status === "planned" ? "遠征の予定を保存する" : "遠征の思い出を保存する"}</button>
-
           <button className="downloadButton" onClick={downloadTicket} disabled={downloading}>
             <Download size={18} />{downloading ? "画像を作成中…" : `${ticketSide === "front" ? "訪問ページ" : "旅先ノート"}をPNGで保存`}</button>
-          {notice && <p className={`saveNotice ${notice.type}`} role="status">{notice.text}</p>}
           {storageError && <p className="formError" role="alert">{storageError}</p>}
           {mapError && <p className="note">地図データを読み込めませんでした。再読み込みしてください。</p>}
           <p className="note">個人の旅の記録として楽しむ、推し旅パスポートです。</p>
@@ -928,7 +972,7 @@ export default function TicketApp({ username }: { username: string }) {
               <span>JOURNEYS</span>
             </div>
           </header>
-          <PassportProgress records={savedTickets} onOpen={(record) => { setSelectedTicket(record); setSelectedSide("front"); }} />
+          <PassportProgress records={savedTickets} onOpen={openSavedTicket} />
           <div className="collectionSection">
             <div className="collectionHeading">
               <div>
@@ -946,7 +990,7 @@ export default function TicketApp({ username }: { username: string }) {
               <span>次の遠征の予定から、記録を始めよう。</span>
             </div> : <div className="collectionGrid">{visibleTickets.map((ticket) =>
               <article className="collectionCard" key={ticket.id}>
-                <button type="button" className="collectionOpen" onClick={() => { setSelectedTicket(ticket); setSelectedSide("front"); }} aria-label={`${ticket.event}の訪問ページを開く`}>
+                <button type="button" className="collectionOpen" onClick={() => openSavedTicket(ticket)} aria-label={`${ticket.event}の訪問ページを開く`}>
                   <img src={ticket.image} alt={`${ticket.event}の記念訪問ページ`} />
                   <div className="collectionCardInfo">
                     <span className={`tripBadge ${ticket.status ?? "completed"}`}>{ticket.status === "planned" ? "遠征予定" : "遠征済み"}</span>

@@ -112,9 +112,10 @@ export function IdentityPage({ origin, destination, oshi, event, date, seed, ven
 }
 
 // 02 ページ：訪問スタンプと思い出
-export function VisaPage({ destination, date, memory, photo, destinationPath, status, travelMode, ferryName, visitCount = 0, stampVisible = status === "completed", stampImpact, onStampLanded, onStampPress, stampPressDisabled, showStampTool }: PassportSpreadProps & {
+export function VisaPage({ destination, date, memory, photo, destinationPath, status, travelMode, ferryName, visitCount = 0, stampVisible = status === "completed", stampImpact, onStampContact, onStampLanded, onStampPress, stampPressDisabled, showStampTool }: PassportSpreadProps & {
   stampVisible?: boolean;
   stampImpact?: { count: number; afterPageTurn: boolean };
+  onStampContact?: () => void;
   onStampLanded?: () => void;
   onStampPress?: () => void;
   stampPressDisabled?: boolean;
@@ -137,6 +138,7 @@ export function VisaPage({ destination, date, memory, photo, destinationPath, st
         )}
         {stampVisible && (
           <div key={stampImpact?.count} className={`visitStamp visitStampSeal${impactClass}`}
+            onAnimationStart={(event) => { if (event.animationName === "visitStampInk") onStampContact?.(); }}
             onAnimationEnd={(event) => { if (event.animationName === "visitStampImpact") onStampLanded?.(); }}>
             <span>VISITED WITH MY OSHI</span><Globe2 size={25} /><strong>{destination}</strong><b>{date.replaceAll("-", ".")}</b><small>訪問の思い出</small>
             {visitCount > 0 && <em>{visitCount} {visitCount === 1 ? "VISIT" : "VISITS"}</em>}

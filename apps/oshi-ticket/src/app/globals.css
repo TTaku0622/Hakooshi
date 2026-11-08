@@ -1832,6 +1832,11 @@ body {
   letter-spacing: .1em;
 }
 
+.passportSoundsToggle {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 .field label {
   color: var(--passport-navy);
 }
@@ -1970,6 +1975,12 @@ a:focus-visible {
 @media (max-width: 520px) {
   .header {
     border-bottom-color: var(--passport-gold);
+  }
+
+  .headerUser {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 4px 8px;
   }
 
   .formPanel,

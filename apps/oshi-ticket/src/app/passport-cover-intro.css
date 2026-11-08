@@ -32,9 +32,36 @@
   animation-fill-mode: forwards;
 }
 
-/* 画面全体がボタンなので、フォーカスの枠は出さない */
-.coverIntro:focus {
+.coverIntroSkipButton {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.coverIntroSkipButton:focus {
   outline: none;
+}
+
+.coverIntroSoundButton {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  padding: 9px 14px;
+  border: 1px solid #f3e6c880;
+  border-radius: 5px;
+  background: #1a130e;
+  color: #f3e6c8;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.coverIntroSoundButton:focus-visible {
+  outline: 2px solid #f3e6c8;
+  outline-offset: 3px;
 }
 
 /* 飛ばすときは別の名前のアニメーションにする。同じ名前のままだと、進んでいた時間を引き継いでフェードせずに消える */
@@ -745,6 +772,10 @@
 /* 動きを減らす設定のときは、机の上の閉じた表紙を少し見せて消すだけにする
    中のアニメーションは 1 つずつ並べると漏れるので、表紙の中はまとめて止める */
 @media (prefers-reduced-motion: reduce) {
+  .coverIntroSoundButton {
+    display: none;
+  }
+
   .coverIntro *,
   .coverIntro *::before,
   .coverIntro *::after {

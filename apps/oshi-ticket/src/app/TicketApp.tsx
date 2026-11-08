@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { logout } from "./auth-actions";
 import { toPng } from "html-to-image";
 import { Download, MapPin, Sparkles, BookOpen, Bookmark, Trash2, Plus, Pencil, LogOut } from "lucide-react";
 import { PassportSpread, IdentityPage, VisaPage, PASSPORT_WIDTH, PASSPORT_HEIGHT, travelModeNames, type PassportSpreadProps, type TravelMode } from "./passport-spread";
 import { PassportNotes, DestinationNotesPage, MyJourneyPage, type PassportNotesProps } from "./passport-notes";
 import { PassportBook } from "./passport-book";
+import { createPassportSounds } from "./passport-sounds";
 import { PassportCoverIntro } from "./passport-cover-intro";
 import { PassportProgress } from "./passport-progress";
 import { getEarnedJourneyBadges } from "./journey-badges";
@@ -23,6 +24,9 @@ import { JourneyGps, type GpsStatus } from "./JourneyGps";
 import { hasCoordinates, type Venue } from "./map-utils";
 import { prefectureFlagColors } from "./prefecture-colors";
 import { artistGenres, prefectures, tourismYears, parseActualTotal, type SavedTicket, type TourismData, type TripType, type TripStatus, type TicketSide } from "./trip-data";
+
+const introBgm = "/sounds/sunlit-passport-intro.wav";
+const mainBgm = "/sounds/dawn-passport.mp3";
 
 const pageTabs = [
   { id: "prepare", label: "遠征を準備する" },
@@ -217,6 +221,54 @@ export default function TicketApp({ username }: { username: string }) {
   const [actualTotal, setActualTotal] = useState("");
 
   const [ticketSide, setTicketSide] = useState<TicketSide>("front");
+  const [soundsEnabled, setSoundsEnabled] = useState(true);
+  const passportSounds = useRef<ReturnType<typeof createPassportSounds>>(null);
+  const [bgmPlaying, setBgmPlaying] = useState(false);
+  const bgm = useRef<HTMLAudioElement>(null);
+
+  const playBgm = useCallback((src: string, loop: boolean) => {
+    const player = bgm.current;
+    if (!player) return;
+
+    if (player.getAttribute("src") !== src) player.src = src;
+    player.loop = loop;
+    player.volume = 0.24;
+    void player.play().catch(() => {});
+  }, []);
+
+  const startIntroBgm = useCallback(() => playBgm(introBgm, false), [playBgm]);
+  const startMainBgm = useCallback(() => playBgm(mainBgm, true), [playBgm]);
+
+  const toggleBgm = () => {
+    if (bgm.current?.paused) startMainBgm();
+    else bgm.current?.pause();
+  };
+
+  useEffect(() => () => passportSounds.current?.dispose(), []);
+
+  const preparePassportSounds = () => {
+    if (soundsEnabled && !passportSounds.current) {
+      passportSounds.current = createPassportSounds();
+    }
+  };
+
+  const togglePassportSounds = () => {
+    if (soundsEnabled) {
+      passportSounds.current?.dispose();
+      passportSounds.current = null;
+    } else {
+      passportSounds.current = createPassportSounds();
+    }
+    setSoundsEnabled(!soundsEnabled);
+  };
+
+  const turnPassportPage = (side: TicketSide) => {
+    if (side !== ticketSide) {
+      preparePassportSounds();
+      passportSounds.current?.play("pageTurn");
+    }
+    setTicketSide(side);
+  };
 
   const [downloading, setDownloading] = useState(false);
 
@@ -547,8 +599,10 @@ export default function TicketApp({ username }: { username: string }) {
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         setTicketSide("front");
         if (reduceMotion) {
+          passportSounds.current?.play("stamp");
           openSavedTicket(ticket);
         } else {
+          if (ticketSide === "back") passportSounds.current?.play("pageTurn");
           setStampImpact((last) => ({
             count: (last?.count ?? 0) + 1,
             afterPageTurn: ticketSide === "back",
@@ -696,7 +750,9 @@ export default function TicketApp({ username }: { username: string }) {
 
   return (
     <main className="page">
-      <PassportCoverIntro username={username} />
+      <audio ref={bgm} src={introBgm} preload="metadata"
+        onPlaying={() => setBgmPlaying(true)} onPause={() => setBgmPlaying(false)} onError={() => setBgmPlaying(false)} />
+      <PassportCoverIntro username={username} onSoundReplay={startIntroBgm} onSoundFinish={startMainBgm} />
 
       <header className="header">
         <div className="logo">
@@ -720,7 +776,13 @@ export default function TicketApp({ username }: { username: string }) {
             onKeyDown={(event) => handlePageTabKeyDown(event, index)}
           >{tab.label}{tab.id === "gps" && gpsStatus !== "idle" && <span className={`pageNavStatus ${gpsStatus}`} aria-hidden="true" />}</button>)}
         </nav>
-        <div className="headerUser"><span>{username}</span><form action={logout}><button type="submit" className="logoutButton"><LogOut size={14} />ログアウト</button></form></div>
+        <div className="headerUser">
+          <span>{username}</span>
+          <button type="button" className="logoutButton" aria-label="BGM" aria-pressed={bgmPlaying} onClick={toggleBgm}>
+            BGM {bgmPlaying ? "オン" : "オフ"}
+          </button>
+          <form action={logout}><button type="submit" className="logoutButton"><LogOut size={14} />ログアウト</button></form>
+        </div>
       </header>
 
       <section className="hero">
@@ -920,14 +982,21 @@ export default function TicketApp({ username }: { username: string }) {
               <h2>あなただけの推し旅パスポート</h2>
               <p>訪問スタンプと旅先の発見を、見開きのページに。</p>
             </div>
+            <button type="button" className="logoutButton passportSoundsToggle" aria-label="効果音" aria-pressed={soundsEnabled} onClick={togglePassportSounds}>
+              効果音 {soundsEnabled ? "オン" : "オフ"}
+            </button>
           </div>
 
           <div ref={passportTabsRef} className="ticketTabs" role="tablist" aria-label="パスポートのページ">{(["front", "back"] as const).map((side) =>
-            <button type="button" role="tab" aria-selected={ticketSide === side} key={side} onClick={() => setTicketSide(side)}>{side === "front" ? "訪問ページ · VISAS" : "旅先ノート · NOTES"}</button>)}</div>
+            <button type="button" role="tab" aria-selected={ticketSide === side} key={side} onClick={() => turnPassportPage(side)}>{side === "front" ? "訪問ページ · VISAS" : "旅先ノート · NOTES"}</button>)}</div>
 
           <PassportBook side={ticketSide} color={color} destination={destination} pages={[
             <IdentityPage key="01" {...spreadProps} />, <VisaPage key="02" {...spreadProps} stampVisible={isStamped} stampImpact={stampImpact} onStampLanded={finishStampImpact}
-              onStampPress={canPressStamp && ticketSide === "front" ? saveTicket : undefined} stampPressDisabled={saveDisabled} />,
+              onStampContact={() => passportSounds.current?.play("stamp")}
+              onStampPress={canPressStamp && ticketSide === "front" ? () => {
+                preparePassportSounds();
+                void saveTicket();
+              } : undefined} stampPressDisabled={saveDisabled} />,
             <DestinationNotesPage key="03" {...notesProps} />, <MyJourneyPage key="04" {...notesProps} />]} />
 
           {canPressStamp && !savingTicket && <p className="passportStampHint">訪問ページのスタンプ欄をタッチして記録</p>}

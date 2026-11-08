@@ -20,7 +20,7 @@ import { VenueSearch } from "./venue-search";
 import { NearbyMap } from "./nearby-map";
 import { LodgingInfo } from "./lodging-info";
 import { JourneyGps, type GpsStatus } from "./JourneyGps";
-import type { Venue } from "./map-utils";
+import { hasCoordinates, type Venue } from "./map-utils";
 import { prefectureFlagColors } from "./prefecture-colors";
 import { artistGenres, prefectures, tourismYears, parseActualTotal, type SavedTicket, type TourismData, type TripType, type TripStatus, type TicketSide } from "./trip-data";
 
@@ -357,6 +357,15 @@ export default function TicketApp({ username }: { username: string }) {
     window.setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   };
 
+  // 保存中（PNG 化の途中）は切り替えない。押印の演出中に離れるときは、演出を待たずに保存済みのページを開く
+  // （非表示になるとアニメーションが止まり、終わりの合図が来ないため）
+  const switchTab = (id: PageTab) => {
+    if (savingTicket) return false;
+    if (stampImpact && id !== "prepare") finishStampImpact();
+    setActiveTab(id);
+    return true;
+  };
+
   const handlePageTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
     // Alt+← などのブラウザ操作は止めない
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
@@ -368,8 +377,7 @@ export default function TicketApp({ username }: { username: string }) {
     else return;
 
     event.preventDefault();
-    setActiveTab(pageTabs[nextIndex].id);
-    pageTabRefs.current[nextIndex]?.focus();
+    if (switchTab(pageTabs[nextIndex].id)) pageTabRefs.current[nextIndex]?.focus();
   };
 
 
@@ -708,7 +716,7 @@ export default function TicketApp({ username }: { username: string }) {
             aria-controls={`tabpanel-${tab.id}`}
             aria-label={tab.id === "gps" && gpsStatus !== "idle" ? `GPS（${gpsStatus === "alert" ? "記録に注意あり" : "記録中"}）` : undefined}
             tabIndex={activeTab === tab.id ? 0 : -1}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => switchTab(tab.id)}
             onKeyDown={(event) => handlePageTabKeyDown(event, index)}
           >{tab.label}{tab.id === "gps" && gpsStatus !== "idle" && <span className={`pageNavStatus ${gpsStatus}`} aria-hidden="true" />}</button>)}
         </nav>
@@ -962,7 +970,7 @@ export default function TicketApp({ username }: { username: string }) {
             <span className="collectionEyebrow">PLAN YOUR LIVE TRIP</span>
             <h2 id="tripSupportHeading">ライブ前後の寄り道・移動・宿泊</h2>
             <p>会場周辺のスポット、レンタカー、宿泊先をまとめてチェック。</p>
-            {!venue && <button type="button" className="tripSupportVenueLink" onClick={showPrepareForm}>「遠征を準備する」で会場を選ぶ</button>}
+            {!hasCoordinates(venue) && <button type="button" className="tripSupportVenueLink" onClick={showPrepareForm}>「遠征を準備する」で会場を選ぶ</button>}
           </div>
           <NearbyMap venue={venue} />
           <LodgingInfo key={`${venue?.latitude}/${venue?.longitude}`} venue={venue} />
@@ -994,6 +1002,9 @@ export default function TicketApp({ username }: { username: string }) {
               <span className="collectionCount">{savedTickets.length} JOURNEYS</span>
             </div>
             <p className="collectionStorageNote">このブラウザに保存されます。予定の訪問ページを開くと、写真や実費を追記できます。</p>
+            {/* 読み込み・削除の失敗はこのタブにも出す（準備タブにしか出さないと、記録が消えたように見える） */}
+            {storageError && <p className="formError" role="alert">{storageError}</p>}
+            {notice?.type === "error" && <p className="saveNotice error" role="status">{notice.text}</p>}
             <div className="collectionFilters" aria-label="コレクションの絞り込み">{(["all", "planned", "completed"] as const).map((filter) =>
               <button type="button" key={filter} aria-pressed={collectionFilter === filter} onClick={() => setCollectionFilter(filter)}>{filter === "all" ? "すべて" : filter === "planned" ? "遠征予定" : "遠征済み"}</button>)}</div>
             {visibleTickets.length === 0 ? <div className="collectionEmpty">

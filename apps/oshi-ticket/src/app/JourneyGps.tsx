@@ -238,7 +238,8 @@ export function JourneyGps({ tickets, onStatusChange }: { tickets: SavedTicket[]
   const wakeLock = useRef<WakeLockSentinel | null>(null);
   const activeJourney = journeys.find((journey) => String(journey.ticketId) === selectedTicketId && journey.endedAt === null);
   const selectedTicket = tickets.find((ticket) => String(ticket.id) === selectedTicketId);
-  const status: GpsStatus = !tracking ? "idle" : trackingWarning || screenWarning || error ? "alert" : "tracking";
+  // エラーは記録が止まったとき（tracking=false）にも出す。画面点灯の注意は常に出るブラウザがあるので含めない
+  const status: GpsStatus = error || (tracking && trackingWarning) ? "alert" : tracking ? "tracking" : "idle";
 
   useEffect(() => { onStatusChange?.(status); }, [status, onStatusChange]);
 

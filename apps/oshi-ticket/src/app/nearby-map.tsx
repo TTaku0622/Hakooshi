@@ -37,11 +37,11 @@ function SpotMap({ venue, spots, selected, onSelect }: {
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
-    // タブで隠れると 0x0 が届く。無視しないとズームが NaN になり、表示し直すたびに位置・倍率が戻る
+    // タブで隠れると 0x0 が届く。fitView は 80px 以下だと NaN を返すので無視し、同じサイズなら位置・倍率を保つ
     let last = { width: 0, height: 0 };
     const resize = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
-      if (!width || !height || (width === last.width && height === last.height)) return;
+      if (width <= 80 || height <= 80 || (width === last.width && height === last.height)) return;
       last = { width, height };
       setSize({ width, height });
       const active = spots.find((spot) => spot.id === selected);
@@ -113,7 +113,7 @@ function RentalMap({ venue, rentals, selected, onSelect }: {
     let last = { width: 0, height: 0 };
     const resize = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
-      if (!width || !height || (width === last.width && height === last.height)) return;
+      if (width <= 80 || height <= 80 || (width === last.width && height === last.height)) return;
       last = { width, height };
       setSize({ width, height });
       const active = rentals.find((rental) => rental.id === selected);

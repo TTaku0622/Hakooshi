@@ -7,6 +7,7 @@ import { Download, MapPin, Sparkles, BookOpen, Bookmark, Trash2, Plus, Pencil, L
 import { PassportSpread, IdentityPage, VisaPage, PASSPORT_WIDTH, PASSPORT_HEIGHT, travelModeNames, type PassportSpreadProps, type TravelMode } from "./passport-spread";
 import { PassportNotes, DestinationNotesPage, MyJourneyPage, type PassportNotesProps } from "./passport-notes";
 import { PassportBook } from "./passport-book";
+import { PassportCoverIntro, resetCoverIntro } from "./passport-cover-intro";
 import { PassportProgress } from "./passport-progress";
 import { getEarnedJourneyBadges } from "./journey-badges";
 import { railways, ferryFacts } from "./travel-data";
@@ -596,6 +597,7 @@ export default function TicketApp({ username }: { username: string }) {
 
   return (
     <main className="page">
+      <PassportCoverIntro username={username} />
 
       <header className="header">
         <div className="logo">
@@ -604,7 +606,7 @@ export default function TicketApp({ username }: { username: string }) {
           </span>
           <span>OSHI PASSPORT</span>
         </div>
-        <div className="headerUser"><span>{username}</span><form action={logout}><button type="submit" className="logoutButton"><LogOut size={14} />ログアウト</button></form></div>
+        <div className="headerUser"><span>{username}</span><form action={logout} onSubmit={resetCoverIntro}><button type="submit" className="logoutButton"><LogOut size={14} />ログアウト</button></form></div>
       </header>
 
       <section className="hero">

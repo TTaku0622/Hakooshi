@@ -3,6 +3,7 @@
 import { memo, useEffect, useRef, useState, useSyncExternalStore, type AnimationEvent } from "react";
 import { MapPin, Ticket } from "lucide-react";
 import { SEEN_KEY, SEEN_STYLE_ID, hasSeenCoverIntro, markCoverIntroSeen } from "./cover-intro-state";
+import { createPassportSounds } from "./passport-sounds";
 import "./passport-cover-intro.css";
 
 // タブを開いて最初にパスポート画面を開いたときだけ、表紙が開く演出を見せる（同じタブで再読み込みしても出さない）
@@ -19,16 +20,30 @@ const todayLabel = () => {
 // サーバーが返す HTML には表紙が入っている。見たことがあるタブでは、React が動く前に一瞬表紙が出ないよう描画前に隠す
 const hideIfSeen = `try{if(sessionStorage.getItem("${SEEN_KEY}")==="1"){var s=document.createElement("style");s.id="${SEEN_STYLE_ID}";s.textContent="[data-cover-intro]{display:none}";document.head.appendChild(s)}}catch(e){}`;
 
-// 親（TicketApp）は入力のたびに描き直されるので、名前が変わらない限り描き直さない
-export const PassportCoverIntro = memo(function PassportCoverIntro({ username }: { username: string }) {
+export const PassportCoverIntro = memo(function PassportCoverIntro({ username, onSoundReplay, onSoundFinish }: {
+  username: string;
+  onSoundReplay: () => void;
+  onSoundFinish: () => void;
+}) {
   const seen = useSyncExternalStore(subscribe, hasSeenCoverIntro, () => false);
   // サーバーでの描画とハイドレーションのときだけ true。クライアントで足した script は実行されないので、そのときは出さない
   const fromServer = useSyncExternalStore(subscribe, () => false, () => true);
   const today = useSyncExternalStore(subscribe, todayLabel, () => null);
   const [done, setDone] = useState(false);
   const [skipping, setSkipping] = useState(false);
+  const [soundReplay, setSoundReplay] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const skipButtonRef = useRef<HTMLButtonElement>(null);
+  const sounds = useRef<ReturnType<typeof createPassportSounds>>(null);
   const show = !seen && !done;
+
+  useEffect(() => {
+    if (!show) return;
+    return () => {
+      sounds.current?.dispose();
+      sounds.current = null;
+    };
+  }, [show]);
 
   useEffect(() => {
     if (!show) return;
@@ -41,14 +56,17 @@ export const PassportCoverIntro = memo(function PassportCoverIntro({ username }:
       return () => cancelAnimationFrame(frame);
     }
     // 読み上げやキーボードでも飛ばせるよう、表紙にフォーカスを移す
-    overlay?.focus({ preventScroll: true });
+    skipButtonRef.current?.focus({ preventScroll: true });
     // 演出中は後ろの画面をスクロールさせない（iPhone のスワイプは CSS の touch-action で止める）
     const root = document.documentElement;
     const overflow = root.style.overflow;
     root.style.overflow = "hidden";
     // 後ろの画面のボタンなどが一緒に押されないよう、ほかより先に受け取って止める
+    // 表紙の中のボタン（スキップ・音ありで再生）の Enter・スペースは、そのボタン自身に任せる
     const skipByKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" && event.key !== "Enter" && event.key !== " ") return;
+      const insideIntro = event.target instanceof Node && !!overlayRef.current?.contains(event.target);
+      const activatesBehind = (event.key === "Enter" || event.key === " ") && !insideIntro;
+      if (event.key !== "Escape" && !activatesBehind) return;
       event.preventDefault();
       event.stopPropagation();
       setSkipping(true);
@@ -58,22 +76,35 @@ export const PassportCoverIntro = memo(function PassportCoverIntro({ username }:
       root.style.overflow = overflow;
       window.removeEventListener("keydown", skipByKey, true);
     };
-  }, [show]);
+  }, [show, soundReplay]);
 
   if (!show) return null;
+
+  const replayWithSound = () => {
+    if (skipping || soundReplay) return;
+    sounds.current = createPassportSounds();
+    onSoundReplay();
+    setSoundReplay(true);
+  };
+
+  const playCue = (event: AnimationEvent<HTMLDivElement>) => {
+    if (skipping) return;
+    if (event.animationName === "coverIntroOpen") sounds.current?.play("pageTurn");
+    if (event.animationName === "coverIntroThud") sounds.current?.play("stamp");
+  };
 
   // 子要素のアニメーションの終わりも伝わってくるので、全体が消え終わったときだけ閉じる
   const finish = (event: AnimationEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return;
+    if (soundReplay) onSoundFinish();
     markCoverIntroSeen();
     setDone(true);
   };
 
   return <>
     {fromServer && <script dangerouslySetInnerHTML={{ __html: hideIfSeen }} />}
-    {/* 画面全体が「飛ばす」ボタン。中の絵は読み上げない */}
-    <div ref={overlayRef} data-cover-intro="" className={`coverIntro${skipping ? " isSkipping" : ""}`}
-      role="button" tabIndex={-1} aria-label="オープニングをスキップ" onClick={() => setSkipping(true)} onAnimationEnd={finish}>
+    <div key={soundReplay ? "with-sound" : "silent"} ref={overlayRef} data-cover-intro="" className={`coverIntro${skipping ? " isSkipping" : ""}`}
+      onAnimationStart={playCue} onAnimationEnd={finish}>
       {/* 紙で覆いきったあと、見えない場面を描かないよう透明にするための外枠 */}
       <div className="coverIntroWorld" aria-hidden="true">
       <div className="coverIntroScene">
@@ -149,6 +180,8 @@ export const PassportCoverIntro = memo(function PassportCoverIntro({ username }:
       {/* 最後に画面いっぱいが紙になり、そのままパスポート画面に変わる */}
       <div className="coverIntroWash" aria-hidden="true"><span>YOUR LIVE JOURNEY BEGINS</span></div>
       <p className="coverIntroHint" aria-hidden="true">タップでスキップ</p>
+      <button ref={skipButtonRef} type="button" className="coverIntroSkipButton" aria-label="オープニングをスキップ" onClick={() => setSkipping(true)} />
+      {!soundReplay && !skipping && <button type="button" className="coverIntroSoundButton" onClick={replayWithSound}>音ありで再生</button>}
     </div>
   </>;
 });

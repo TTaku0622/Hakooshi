@@ -24,6 +24,15 @@ import type { Venue } from "./map-utils";
 import { prefectureFlagColors } from "./prefecture-colors";
 import { artistGenres, prefectures, tourismYears, parseActualTotal, type SavedTicket, type TourismData, type TripType, type TripStatus, type TicketSide } from "./trip-data";
 
+function sameVenue(a: Venue | undefined, b: Venue | null) {
+  if (!a || !b) return false;
+  if (a.id && b.id && a.source === b.source) return a.id === b.id;
+  const normalize = (name: string) =>
+    name.normalize("NFKC").toLocaleLowerCase().replace(/[\\s・･_-]/g, "");
+  if (normalize(a.name) !== normalize(b.name)) return false;
+  return !a.prefecture || !b.prefecture || a.prefecture === b.prefecture;
+}
+
 function hashString(value: string) {
 
   return [...value].reduce((hash, char) => {
@@ -592,8 +601,16 @@ export default function TicketApp({ username }: { username: string }) {
   };
 
   // パスポートの各ページに渡す内容（画面のめくれる本と、PNG 保存用の見開きで共通）
-  const spreadProps: PassportSpreadProps = { origin, destination, oshi, event, venueName: venue?.name, date, memory: status === "planned" ? "" : memory, photo: status === "completed" ? photo : "", color, seed, destinationPath, status, travelMode, ferryName: travelMode === "ferry" ? ferryRoute || "船旅" : undefined };
-  const notesProps: PassportNotesProps = { destination, color, date, status, data: benchmark, actualTotal: actualValue, memory, outfit, setlist, setlistSource, travelMode, railway: railways.find((r) => r.id === railwayId), ferryRoute };
+  const venueVisitCount = venue
+    ? savedTickets.filter((record) =>
+        record.id !== editingId &&
+        (record.status ?? "completed") === "completed" &&
+        sameVenue(record.venue, venue)
+      ).length + (status === "completed" ? 1 : 0)
+    : 0;
+
+  const spreadProps: PassportSpreadProps = { origin, destination, oshi, event, venueName: venue?.name, date, memory: status === "planned" ? "" : memory, photo: status === "completed" ? photo : "", color, seed, destinationPath, status, visitCount: venueVisitCount, travelMode, ferryName: travelMode === "ferry" ? ferryRoute || "船旅" : undefined };
+  const notesProps: PassportNotesProps = { destination, color, date, status, data: benchmark, actualTotal: actualValue, memory, outfit, setlist, setlistSource, travelMode, railway: railways.find((r) => r.id === railwayId), ferryRoute, visitCount: venueVisitCount };
 
   return (
     <main className="page">

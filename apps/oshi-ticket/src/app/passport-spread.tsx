@@ -18,7 +18,8 @@ export function PassportFrame({ pageRef, color, destination, className, children
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
-    const observer = new ResizeObserver(([entry]) => setScale(Math.min(1, entry.contentRect.width / PASSPORT_WIDTH)));
+    // タブで隠れると幅0が届く。無視しないと scale(0) になり、タブを戻すたびにパスポートがちらつく
+    const observer = new ResizeObserver(([entry]) => { if (entry.contentRect.width) setScale(Math.min(1, entry.contentRect.width / PASSPORT_WIDTH)); });
     observer.observe(viewport);
     return () => observer.disconnect();
   }, []);

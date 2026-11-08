@@ -215,7 +215,10 @@ function getCurrentPosition(): Promise<GpsPosition> {
   });
 }
 
-export function JourneyGps({ tickets }: { tickets: SavedTicket[] }) {
+// 別のタブを見ている間も、記録中か・注意が出ているかをタブに出すための状態
+export type GpsStatus = "idle" | "tracking" | "alert";
+
+export function JourneyGps({ tickets, onStatusChange }: { tickets: SavedTicket[]; onStatusChange?: (status: GpsStatus) => void }) {
   const [selectedTicketId, setSelectedTicketId] = useState("");
   const [journeys, setJourneys] = useState<GpsJourney[]>([]);
   const [details, setDetails] = useState<GpsDetails | null>(null);
@@ -235,6 +238,10 @@ export function JourneyGps({ tickets }: { tickets: SavedTicket[] }) {
   const wakeLock = useRef<WakeLockSentinel | null>(null);
   const activeJourney = journeys.find((journey) => String(journey.ticketId) === selectedTicketId && journey.endedAt === null);
   const selectedTicket = tickets.find((ticket) => String(ticket.id) === selectedTicketId);
+  // エラーは記録が止まったとき（tracking=false）にも出す。画面点灯の注意は常に出るブラウザがあるので含めない
+  const status: GpsStatus = error || (tracking && trackingWarning) ? "alert" : tracking ? "tracking" : "idle";
+
+  useEffect(() => { onStatusChange?.(status); }, [status, onStatusChange]);
 
   const refreshJourneys = async () => {
     const data = await responseJson<{ journeys: GpsJourney[] }>(await fetch("/api/gps", { cache: "no-store" }));
@@ -487,7 +494,7 @@ export function JourneyGps({ tickets }: { tickets: SavedTicket[] }) {
     }
   };
 
-  return <section className="gpsPanel" aria-labelledby="gpsHeading">
+  return <section className="gpsPanel" id="gps-tracking" aria-labelledby="gpsHeading">
     <div className="gpsPanelHeading">
       <span className="gpsPanelIcon"><MapPin size={18} /></span>
       <div><h2 id="gpsHeading">GPSで旅の軌跡を記録</h2><p>位置情報は記録中のみ取得し、アカウントに保存します。</p></div>

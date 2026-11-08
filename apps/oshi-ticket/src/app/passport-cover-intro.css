@@ -1,0 +1,762 @@
+/* 表紙が開いてパスポート画面に入る演出（passport-cover-intro.tsx）。globals.css とぶつからないようファイルを分け、クラス名は coverIntro で始める
+   流れ: 机の上のパスポートを手前上から見る → 表紙が開く → 入国スタンプ → カメラが右のページに入り込む → 紙がそのままパスポート画面になる */
+.coverIntro {
+  --cover-w: min(320px, 64vw, 44vh);
+  --u: calc(var(--cover-w) / 100);
+  --thick: calc(var(--u) * 2);
+  --fit: 1;
+  --open-at: .9s;
+  --open: 1.4s;
+  --ease-open: cubic-bezier(.55, .05, .3, 1);
+  --stamp-at: 2.2s;
+  --wash-at: 3.3s;
+  --wash: .45s;
+  --leave-at: 4.2s;
+  --leave: .5s;
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  overflow: hidden;
+  background: #1a130e;
+  cursor: pointer;
+  /* 演出中に iPhone でスワイプしても後ろの画面が動かないようにする */
+  touch-action: none;
+  overscroll-behavior: contain;
+  /* 不透明度で消し（合成スレッドで動く）、消え終わったら visibility で隠す。
+     JS が遅い・失敗したときも、透明な表紙が後ろの画面のクリックを止め続けないため。
+     visibility を同じアニメーションに入れると不透明度までメインスレッドになるので、別のアニメーションにする */
+  animation-name: coverIntroLeave, coverIntroHide;
+  animation-duration: var(--leave), 1ms;
+  animation-timing-function: ease, linear;
+  animation-delay: var(--leave-at), calc(var(--leave-at) + var(--leave));
+  animation-fill-mode: forwards;
+}
+
+/* 画面全体がボタンなので、フォーカスの枠は出さない */
+.coverIntro:focus {
+  outline: none;
+}
+
+/* 飛ばすときは別の名前のアニメーションにする。同じ名前のままだと、進んでいた時間を引き継いでフェードせずに消える */
+.coverIntro.isSkipping {
+  animation: coverIntroSkip .35s ease forwards, coverIntroSkipHide 1ms linear .35s forwards;
+}
+
+/* 紙で画面が覆われきったら（3.75 秒）、見えない机や本を描き続けないよう透明にする
+   カメラに付けると preserve-3d が平らになり、シーンに付けるとフェードインと両立できずメインスレッドに戻るので、専用の外枠に付ける */
+.coverIntroWorld {
+  position: absolute;
+  inset: 0;
+  animation: coverIntroGone 1ms linear 3.8s forwards;
+}
+
+.coverIntroScene {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  perspective: 1100px;
+  perspective-origin: 50% 42%;
+  /* 入り込む最後の一瞬だけ少しぼかして、吸い込まれる速さを出す */
+  animation: coverIntroFadeIn .9s ease-out both, coverIntroDiveBlur .45s ease-in 3.35s both;
+}
+
+/* カメラ。中身（机・小物・本）をまとめて傾け、寄せ、最後は右のページへ入り込む */
+.coverIntroCamera {
+  position: relative;
+  width: var(--cover-w);
+  aspect-ratio: 88 / 125;
+  transform-style: preserve-3d;
+  /* ここに opacity のアニメーションを付けると preserve-3d が平らにされ、表紙の開き方が立体でなくなるので付けない */
+  animation: coverIntroCamera 3.9s linear both;
+}
+
+/* 木の机。板の継ぎ目が奥へ向かってすぼまり、奥行きが出る
+   大きい画面では奥がいくらでも見えるので、机を広げる代わりに端を背景色へなじませる（手前は 480px あれば足りる） */
+.coverIntroDesk {
+  position: absolute;
+  top: -1150px;
+  right: -1150px;
+  bottom: -480px;
+  left: -1150px;
+  background:
+    radial-gradient(ellipse 1150px 1150px at calc(1150px + var(--cover-w) / 2) calc(1150px + var(--cover-w) * .71), transparent 60%, #1a130e 98%),
+    repeating-linear-gradient(90deg, #00000055 0 2px, #ffffff0a 2px 3px, transparent 3px 190px),
+    repeating-linear-gradient(90deg, #ffffff06 0 1px, transparent 1px 6px, #00000014 6px 7px, transparent 7px 15px),
+    linear-gradient(90deg, #4a3424, #3d2a1c 30%, #4b3524 55%, #3a281b 80%, #47321f);
+  background-size: auto, auto, auto, 380px 100%;
+}
+
+/* 卓上ライトの光だまり */
+.coverIntroLamp {
+  position: absolute;
+  inset: -110% -160%;
+  background: radial-gradient(ellipse at 50% 50%, #ffd99a42, #ffcf8a1a 32%, transparent 62%);
+  pointer-events: none;
+  transform: translateZ(.1px);
+}
+
+/* 小物: ルートを書いた地図のメモ */
+.coverIntroMap {
+  position: absolute;
+  top: -30%;
+  left: -94%;
+  width: 86%;
+  aspect-ratio: 160 / 110;
+  border-radius: calc(var(--u) * 1);
+  background:
+    repeating-linear-gradient(0deg, #8fa3b322 0 1px, transparent 1px calc(var(--u) * 6)),
+    repeating-linear-gradient(90deg, #8fa3b322 0 1px, transparent 1px calc(var(--u) * 6)),
+    #f1e9d6;
+  box-shadow: 0 calc(var(--u) * 1.5) calc(var(--u) * 3) #0000005c;
+  transform: translateZ(.2px) rotate(-13deg);
+}
+
+.coverIntroRoute {
+  position: absolute;
+  inset: 8%;
+  width: 84%;
+  height: 84%;
+  fill: none;
+  stroke: #b4424d;
+  stroke-dasharray: 4 4;
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
+}
+
+.coverIntroMapPin {
+  position: absolute;
+  top: 4%;
+  right: 4%;
+  width: 9%;
+  height: auto;
+  color: #b4424d;
+}
+
+.coverIntroMap span {
+  position: absolute;
+  bottom: 7%;
+  left: 8%;
+  color: #8c887e;
+  font-family: Georgia, serif;
+  font-size: calc(var(--u) * 3);
+  letter-spacing: .2em;
+}
+
+/* 小物: ライブのチケット（一部が本の下に入っている） */
+.coverIntroTicket {
+  position: absolute;
+  top: 84%;
+  left: 52%;
+  display: flex;
+  width: 80%;
+  aspect-ratio: 3 / 1.1;
+  border-radius: calc(var(--u) * 1.2);
+  background: #f4ead2;
+  box-shadow: 0 calc(var(--u) * 1.5) calc(var(--u) * 3) #0000005c;
+  color: #26354a;
+  transform: translateZ(.2px) rotate(15deg);
+}
+
+.coverIntroTicketMain {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(var(--u) * 1);
+  padding: 0 calc(var(--u) * 6);
+  border-right: 1px dashed #b89a5a;
+}
+
+.coverIntroTicketMain small {
+  color: #b89a5a;
+  font-size: calc(var(--u) * 2.6);
+  letter-spacing: .2em;
+}
+
+.coverIntroTicketMain strong {
+  font-family: Georgia, serif;
+  font-size: calc(var(--u) * 5);
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+
+.coverIntroTicketStub {
+  display: grid;
+  width: 22%;
+  place-items: center;
+  color: #8c887e;
+  font-family: "Courier New", monospace;
+  font-size: calc(var(--u) * 3);
+  text-align: center;
+}
+
+/* 本。机の上に置いてあり、ページは厚みのぶん机から浮いている */
+.coverIntroBook {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  /* スタンプが押された瞬間、本がわずかに沈む */
+  animation: coverIntroThud .26s ease-out both;
+  animation-delay: calc(var(--stamp-at) + .22s);
+}
+
+/* 机に落ちる本の影。表紙が開くと左へ広がる
+   filter: blur は動かすたびにぼかし直しになるので、ぼかした縁をグラデーションで描いておく（縁の幅はぼかし 4u 相当） */
+.coverIntroBookShadow {
+  --edge: calc(var(--u) * 8);
+  --soft: transparent 0, #00000029 calc(var(--edge) * .5), #00000080 var(--edge), #000000d6 calc(var(--edge) * 1.5), #000 calc(var(--edge) * 2), #000 calc(100% - var(--edge) * 2), #000000d6 calc(100% - var(--edge) * 1.5), #00000080 calc(100% - var(--edge)), #00000029 calc(100% - var(--edge) * .5), transparent 100%;
+  position: absolute;
+  top: calc(2% - var(--edge));
+  right: calc(-2% - var(--edge));
+  bottom: calc(-4% - var(--edge));
+  left: calc(1% - var(--edge));
+  background: linear-gradient(90deg, var(--soft));
+  mask-image: linear-gradient(180deg, var(--soft));
+  opacity: .55;
+  transform: translateZ(.3px);
+  transform-origin: right center;
+  animation: coverIntroShadowOpen both;
+  animation-duration: var(--open);
+  animation-timing-function: var(--ease-open);
+  animation-delay: var(--open-at);
+}
+
+/* ページの小口。机から立ち上がる細い面で、紙が重なった線を見せる */
+.coverIntroEdge {
+  position: absolute;
+}
+
+.coverIntroEdgeFront {
+  top: calc(100% - var(--u) * 1.2);
+  right: calc(var(--u) * 1.4);
+  left: 0;
+  height: var(--thick);
+  background:
+    linear-gradient(180deg, #172a45 0 18%, transparent 18%),
+    repeating-linear-gradient(180deg, #e3d6b8 0 1px, #fffaf0 1px 2px);
+  transform: rotateX(90deg);
+  transform-origin: top center;
+}
+
+.coverIntroEdgeSide {
+  top: calc(var(--u) * 1.2);
+  bottom: calc(var(--u) * 1.2);
+  left: calc(100% - var(--u) * 1.4);
+  width: var(--thick);
+  background:
+    linear-gradient(90deg, #172a45 0 18%, transparent 18%),
+    repeating-linear-gradient(90deg, #e3d6b8 0 1px, #fffaf0 1px 2px);
+  transform: rotateY(-90deg);
+  transform-origin: left center;
+}
+
+/* 最初のページ */
+.coverIntroPage {
+  position: absolute;
+  inset: calc(var(--u) * 1.2) calc(var(--u) * 1.4) calc(var(--u) * 1.2) 0;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: calc(var(--u) * 12) calc(var(--u) * 8) calc(var(--u) * 10);
+  overflow: hidden;
+  border-radius: 0 calc(var(--u) * 3.5) calc(var(--u) * 3.5) 0;
+  background:
+    repeating-linear-gradient(-45deg, #647b5610 0 1px, transparent 1px 11px),
+    var(--passport-paper, #fffcf5);
+  box-shadow: inset calc(var(--u) * 3) 0 calc(var(--u) * 4) calc(var(--u) * -3) #172a4530;
+  color: var(--passport-ink, #26354a);
+  transform: translateZ(var(--thick));
+}
+
+/* 表紙が持ち上がるあいだ、背表紙の側に表紙の影が落ちる */
+.coverIntroPage::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #2a1d1270, transparent 60%);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  animation: coverIntroPageShade ease-in-out both;
+  animation-duration: var(--open);
+  animation-delay: var(--open-at);
+}
+
+.coverIntroPageLabel {
+  color: var(--passport-gold, #b89a5a);
+  font-family: Georgia, serif;
+  font-size: calc(var(--u) * 3.4);
+  letter-spacing: .3em;
+}
+
+.coverIntroWatermark {
+  position: absolute;
+  top: 24%;
+  left: 22%;
+  width: 56%;
+  height: auto;
+  color: var(--passport-gold, #b89a5a);
+  opacity: .14;
+}
+
+.coverIntroHolder {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: calc(var(--u) * 2);
+  max-width: 100%;
+  margin-top: auto;
+}
+
+.coverIntroHolder small {
+  color: var(--passport-muted, #8c887e);
+  font-size: calc(var(--u) * 3.2);
+  letter-spacing: .2em;
+}
+
+.coverIntroHolder strong {
+  max-width: 100%;
+  font-family: Georgia, "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size: calc(var(--u) * 8);
+  font-weight: 500;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.coverIntroMotto {
+  position: relative;
+  margin: calc(var(--u) * 9) 0 0;
+  color: var(--passport-muted, #8c887e);
+  font-size: calc(var(--u) * 3.6);
+  text-align: center;
+}
+
+/* 入国スタンプ。上から押されて、少し傾いて残る */
+.coverIntroStamp {
+  position: absolute;
+  top: 27%;
+  right: calc(var(--u) * 6);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: calc(var(--u) * .8);
+  padding: calc(var(--u) * 2.4) calc(var(--u) * 4);
+  border: calc(var(--u) * .7) solid currentColor;
+  border-radius: calc(var(--u) * 3);
+  outline: 1px solid currentColor;
+  outline-offset: calc(var(--u) * -1.8);
+  color: #a93a46;
+  font-family: Georgia, serif;
+  opacity: 0;
+  animation: coverIntroStamp .34s cubic-bezier(.55, 0, .8, .2) both;
+  animation-delay: var(--stamp-at);
+}
+
+.coverIntroStamp small {
+  font-size: calc(var(--u) * 3);
+  letter-spacing: .18em;
+  white-space: pre;
+}
+
+.coverIntroStamp strong {
+  font-size: calc(var(--u) * 4.8);
+  letter-spacing: .14em;
+  white-space: nowrap;
+}
+
+/* 表紙。背表紙（左端）を軸に回す。ページの上に少しだけ浮かせて置く */
+.coverIntroCover {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(calc(var(--thick) + .5px));
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  animation: coverIntroOpen both;
+  animation-duration: var(--open);
+  animation-timing-function: var(--ease-open);
+  animation-delay: var(--open-at);
+}
+
+.coverIntroFace {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* 紺の表紙と金の箔押し */
+.coverIntroFront {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: calc(var(--u) * 15) calc(var(--u) * 8) calc(var(--u) * 13) calc(var(--u) * 11);
+  border-radius: calc(var(--u) * 1.5) calc(var(--u) * 4) calc(var(--u) * 4) calc(var(--u) * 1.5);
+  background:
+    linear-gradient(90deg, #0b1626, #1d3352 calc(var(--u) * 3), #172a4500 calc(var(--u) * 7)),
+    radial-gradient(circle at 38% 24%, #ffffff16, transparent 58%),
+    repeating-radial-gradient(circle at 20% 30%, #ffffff06 0 1px, transparent 1px 3px),
+    var(--passport-navy, #172a45);
+  box-shadow: inset 0 0 0 1px #0d1a2c;
+  color: var(--passport-gold-light, #d0b477);
+  text-shadow: 0 1px 0 #00000059;
+}
+
+.coverIntroFront::before {
+  position: absolute;
+  inset: calc(var(--u) * 4) calc(var(--u) * 4) calc(var(--u) * 4) calc(var(--u) * 7);
+  border: 1px solid #b89a5a66;
+  border-radius: calc(var(--u) * 1.5);
+  content: "";
+}
+
+/* 起き上がるにつれて卓上ライトの光から外れ、表紙が暗くなる */
+.coverIntroFront::after {
+  position: absolute;
+  inset: 0;
+  background: #0b1626;
+  content: "";
+  opacity: 0;
+  animation: coverIntroCoverShade ease-in both;
+  animation-duration: var(--open);
+  animation-delay: var(--open-at);
+}
+
+.coverIntroTitleJa {
+  margin-right: -.6em;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size: calc(var(--u) * 7.5);
+  letter-spacing: .6em;
+}
+
+/* チケットの形の紋章。線は金の箔押し、中はほんのり金を敷く */
+.coverIntroEmblem {
+  display: block;
+  width: calc(var(--u) * 54);
+  height: auto;
+  margin: auto 0;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.1;
+}
+
+.coverIntroEmblem * {
+  vector-effect: non-scaling-stroke;
+}
+
+.coverIntroEmblemOuter {
+  fill: #b89a5a1c;
+}
+
+.coverIntroEmblem text {
+  fill: currentColor;
+  stroke: none;
+  font-family: Georgia, serif;
+  font-size: 30px;
+}
+
+.coverIntroEmblemStar {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* アプリ名。表紙でいちばん大きく見せる */
+.coverIntroTitle {
+  margin-right: -.3em;
+  font-family: Georgia, serif;
+  font-size: calc(var(--u) * 8.2);
+  letter-spacing: .3em;
+  white-space: nowrap;
+}
+
+.coverIntroSub {
+  margin: calc(var(--u) * 2.5) -.3em 0 0;
+  font-family: Georgia, serif;
+  font-size: calc(var(--u) * 3.2);
+  letter-spacing: .3em;
+  opacity: .8;
+}
+
+/* 表紙の裏（見返し）。縁に表紙の紺が折り返されている */
+.coverIntroInside {
+  border-radius: calc(var(--u) * 4) calc(var(--u) * 1.5) calc(var(--u) * 1.5) calc(var(--u) * 4);
+  background:
+    repeating-linear-gradient(45deg, #b89a5a17 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(-45deg, #b89a5a17 0 1px, transparent 1px 9px),
+    #f3ead6;
+  box-shadow:
+    inset 0 0 0 calc(var(--u) * 1.1) var(--passport-navy, #172a45),
+    inset calc(var(--u) * -6) 0 calc(var(--u) * 6) calc(var(--u) * -4) #172a4540;
+  transform: rotateY(180deg);
+}
+
+.coverIntroInside {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(var(--u) * 4);
+  padding: 0 calc(var(--u) * 14) 0 calc(var(--u) * 12);
+  color: #6f6754;
+  text-align: center;
+}
+
+.coverIntroInsideMark {
+  width: calc(var(--u) * 12);
+  height: auto;
+  color: var(--passport-gold, #b89a5a);
+  opacity: .7;
+}
+
+.coverIntroInside p {
+  margin: 0;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size: calc(var(--u) * 3.6);
+  line-height: 1.9;
+}
+
+.coverIntroInside small {
+  color: var(--passport-gold, #b89a5a);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size: calc(var(--u) * 3);
+  letter-spacing: .3em;
+}
+
+/* 立っているあいだは影の中、倒れきると明るくなる */
+.coverIntroInside::after {
+  position: absolute;
+  inset: 0;
+  background: #2f2a1c;
+  content: "";
+  opacity: 0;
+  animation: coverIntroInsideShade ease-out both;
+  animation-duration: var(--open);
+  animation-delay: var(--open-at);
+}
+
+/* 周りを暗くして本に目を集める。ページに入り込むときは消す */
+.coverIntroVignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 65% at 50% 46%, transparent 40%, #0b0805d9 100%);
+  pointer-events: none;
+  animation: coverIntroFadeOut .7s ease-in 2.95s both;
+}
+
+/* 最後に画面いっぱいが紙になる。パスポート画面の背景と同じ色なので、そのまま画面に変わって見える */
+.coverIntroWash {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 45%, #fffcf5, transparent 62%),
+    var(--passport-ivory, #f5f0e5);
+  opacity: 0;
+  pointer-events: none;
+  animation: coverIntroFadeIn ease-in both;
+  animation-duration: var(--wash);
+  animation-delay: var(--wash-at);
+}
+
+.coverIntroWash span {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-right: -.4em;
+  color: var(--passport-gold, #b89a5a);
+  font-family: Georgia, serif;
+  font-size: clamp(12px, 1.6vw, 16px);
+  letter-spacing: .4em;
+  opacity: 0;
+  white-space: nowrap;
+  animation: coverIntroTagline .6s ease 3.65s both;
+}
+
+.coverIntroHint {
+  position: absolute;
+  right: 0;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 0;
+  margin: 0;
+  color: #f3e6c8;
+  font-size: 11px;
+  letter-spacing: .2em;
+  text-align: center;
+  opacity: 0;
+  animation: coverIntroHint 2.6s ease .9s both;
+}
+
+.coverIntroWash span::before,
+.coverIntroWash span::after {
+  width: 40px;
+  height: 1px;
+  background: currentColor;
+  content: "";
+  opacity: .6;
+}
+
+/* 表紙が持ち上がるとき、卓上ライトの光が表紙の上を流れる */
+.coverIntroSheen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 300%;
+  background: linear-gradient(105deg, transparent 35%, #fff3d626 48%, #ffffff10 52%, transparent 65%);
+  pointer-events: none;
+  animation: coverIntroSheen 1.3s ease-in-out .5s both;
+}
+
+/* 背景の位置を動かすと毎フレーム描き直しになるので、帯ごと transform で動かす */
+@keyframes coverIntroSheen {
+  from { transform: translateX(-66.6667%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes coverIntroFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes coverIntroDiveBlur {
+  from { filter: blur(0); }
+  to { filter: blur(3px); }
+}
+
+@keyframes coverIntroFadeOut {
+  to { opacity: 0; }
+}
+
+/* 時間は全体の 3.9 秒に対する割合。23% = 0.9 秒（開き始め）、59% = 2.3 秒（開き終わり）、74% = 2.9 秒（入り込み始め） */
+@keyframes coverIntroCamera {
+  0% {
+    transform: translate3d(0, 6%, 0) rotateX(56deg) rotateZ(-11deg) scale(.9) translateX(0);
+    animation-timing-function: cubic-bezier(.3, .1, .4, 1);
+  }
+  23% {
+    transform: translate3d(0, 3%, 0) rotateX(52deg) rotateZ(-8deg) scale(.98) translateX(0);
+    animation-timing-function: cubic-bezier(.55, .05, .3, 1);
+  }
+  59% {
+    transform: translate3d(0, 0, 0) rotateX(36deg) rotateZ(-3deg) scale(calc(1.02 * var(--fit))) translateX(calc(var(--cover-w) * .5));
+    animation-timing-function: ease-in-out;
+  }
+  74% {
+    transform: translate3d(0, 0, 0) rotateX(30deg) rotateZ(-1deg) scale(calc(1.07 * var(--fit))) translateX(calc(var(--cover-w) * .5));
+    animation-timing-function: cubic-bezier(.55, 0, .85, .45);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotateX(0deg) rotateZ(0deg) scale(4.6) translateX(0);
+  }
+}
+
+@keyframes coverIntroOpen {
+  from { transform: translateZ(calc(var(--thick) + .5px)) rotateY(0deg); }
+  /* 180 度より少し回して、開いた表紙の端が机に着くようにする */
+  to { transform: translateZ(calc(var(--thick) + .5px)) rotateY(-181deg); }
+}
+
+@keyframes coverIntroShadowOpen {
+  from { transform: translateZ(.3px) scaleX(1); }
+  /* 縁のぶん広げた箱を右端を軸に伸ばす。左の縁が開いた表紙の下に来るよう 1.945 倍 */
+  to { transform: translateZ(.3px) scaleX(1.945); }
+}
+
+@keyframes coverIntroCoverShade {
+  0% { opacity: 0; }
+  50%, 100% { opacity: .5; }
+}
+
+@keyframes coverIntroInsideShade {
+  0%, 50% { opacity: .28; }
+  100% { opacity: 0; }
+}
+
+@keyframes coverIntroPageShade {
+  0% { opacity: 0; }
+  35% { opacity: .75; }
+  100% { opacity: 0; }
+}
+
+@keyframes coverIntroStamp {
+  0% { opacity: 0; transform: scale(2.2) rotate(-24deg); }
+  70% { opacity: 1; transform: scale(.94) rotate(-9deg); }
+  100% { opacity: .9; transform: scale(1) rotate(-10deg); }
+}
+
+@keyframes coverIntroThud {
+  0%, 100% { transform: none; }
+  35% { transform: scale(.992); }
+}
+
+@keyframes coverIntroTagline {
+  0% { opacity: 0; transform: translateY(6px); }
+  35%, 70% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: none; }
+}
+
+@keyframes coverIntroHint {
+  0% { opacity: 0; }
+  15%, 80% { opacity: .55; }
+  100% { opacity: 0; }
+}
+
+@keyframes coverIntroLeave {
+  to { opacity: 0; }
+}
+
+@keyframes coverIntroHide {
+  to { visibility: hidden; }
+}
+
+@keyframes coverIntroSkip {
+  to { opacity: 0; }
+}
+
+@keyframes coverIntroSkipHide {
+  to { visibility: hidden; }
+}
+
+@keyframes coverIntroGone {
+  to { opacity: 0; }
+}
+
+/* 狭い画面では、開いたときの見開きが収まるようカメラを少し引く */
+@media (max-width: 640px) {
+  .coverIntro {
+    --fit: .66;
+  }
+
+  .coverIntroWash span {
+    gap: 10px;
+    margin-right: -.22em;
+    letter-spacing: .22em;
+  }
+
+  .coverIntroWash span::before,
+  .coverIntroWash span::after {
+    width: 18px;
+  }
+}
+
+/* 動きを減らす設定のときは、机の上の閉じた表紙を少し見せて消すだけにする
+   中のアニメーションは 1 つずつ並べると漏れるので、表紙の中はまとめて止める */
+@media (prefers-reduced-motion: reduce) {
+  .coverIntro *,
+  .coverIntro *::before,
+  .coverIntro *::after {
+    animation: none !important;
+  }
+
+  .coverIntroCamera {
+    transform: rotateX(40deg) rotateZ(-6deg);
+  }
+
+  .coverIntro {
+    animation: coverIntroLeave .4s ease .8s forwards, coverIntroHide 1ms linear 1.2s forwards;
+  }
+}
+

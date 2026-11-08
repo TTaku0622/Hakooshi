@@ -7,6 +7,7 @@ import { Download, MapPin, Sparkles, BookOpen, Bookmark, Trash2, Plus, Pencil, L
 import { PassportSpread, IdentityPage, VisaPage, PASSPORT_WIDTH, PASSPORT_HEIGHT, travelModeNames, type PassportSpreadProps, type TravelMode } from "./passport-spread";
 import { PassportNotes, DestinationNotesPage, MyJourneyPage, type PassportNotesProps } from "./passport-notes";
 import { PassportBook } from "./passport-book";
+import { PassportCoverIntro } from "./passport-cover-intro";
 import { PassportProgress } from "./passport-progress";
 import { getEarnedJourneyBadges } from "./journey-badges";
 import { railways, ferryFacts } from "./travel-data";
@@ -596,6 +597,7 @@ export default function TicketApp({ username }: { username: string }) {
 
   return (
     <main className="page">
+      <PassportCoverIntro username={username} />
 
       <header className="header">
         <div className="logo">

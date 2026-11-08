@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Compass, Globe2, Ticket } from "lucide-react";
 import type { AuthFormState } from "./auth-actions";
+import { resetCoverIntro } from "./cover-intro-state";
 
 type Field = {
   name: string;
@@ -64,6 +65,11 @@ export default function AuthForm({ mode, action, notice }: Props) {
     username: "",
   });
   const isLogin = mode === "login";
+
+  // ログイン画面に来たら（ログアウト・セッション切れのどちらでも）、次にパスポート画面へ入るときに表紙の演出をまた出す
+  useEffect(() => {
+    resetCoverIntro();
+  }, []);
 
   return (
     <main className="authPage">

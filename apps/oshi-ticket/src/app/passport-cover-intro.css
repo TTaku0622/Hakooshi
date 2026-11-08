@@ -19,15 +19,27 @@
   overflow: hidden;
   background: #1a130e;
   cursor: pointer;
-  /* 消えるのは不透明度だけ（合成スレッドで動く）。消え終わったら React が取り除く。
-     visibility なども一緒に動かすと、待っているあいだも毎フレームメインスレッドで見張られるので入れない */
-  animation: coverIntroLeave ease forwards;
-  animation-duration: var(--leave);
-  animation-delay: var(--leave-at);
+  /* 演出中に iPhone でスワイプしても後ろの画面が動かないようにする */
+  touch-action: none;
+  overscroll-behavior: contain;
+  /* 不透明度で消し（合成スレッドで動く）、消え終わったら visibility で隠す。
+     JS が遅い・失敗したときも、透明な表紙が後ろの画面のクリックを止め続けないため。
+     visibility を同じアニメーションに入れると不透明度までメインスレッドになるので、別のアニメーションにする */
+  animation-name: coverIntroLeave, coverIntroHide;
+  animation-duration: var(--leave), 1ms;
+  animation-timing-function: ease, linear;
+  animation-delay: var(--leave-at), calc(var(--leave-at) + var(--leave));
+  animation-fill-mode: forwards;
 }
 
+/* 画面全体がボタンなので、フォーカスの枠は出さない */
+.coverIntro:focus {
+  outline: none;
+}
+
+/* 飛ばすときは別の名前のアニメーションにする。同じ名前のままだと、進んでいた時間を引き継いでフェードせずに消える */
 .coverIntro.isSkipping {
-  animation: coverIntroLeave .35s ease forwards;
+  animation: coverIntroSkip .35s ease forwards, coverIntroSkipHide 1ms linear .35s forwards;
 }
 
 /* 紙で画面が覆われきったら（3.75 秒）、見えない机や本を描き続けないよう透明にする
@@ -696,6 +708,18 @@
   to { opacity: 0; }
 }
 
+@keyframes coverIntroHide {
+  to { visibility: hidden; }
+}
+
+@keyframes coverIntroSkip {
+  to { opacity: 0; }
+}
+
+@keyframes coverIntroSkipHide {
+  to { visibility: hidden; }
+}
+
 @keyframes coverIntroGone {
   to { opacity: 0; }
 }
@@ -718,23 +742,13 @@
   }
 }
 
-/* 動きを減らす設定のときは、机の上の閉じた表紙を少し見せて消すだけにする */
+/* 動きを減らす設定のときは、机の上の閉じた表紙を少し見せて消すだけにする
+   中のアニメーションは 1 つずつ並べると漏れるので、表紙の中はまとめて止める */
 @media (prefers-reduced-motion: reduce) {
-  .coverIntroScene,
-  .coverIntroCamera,
-  .coverIntroCover,
-  .coverIntroBookShadow,
-  .coverIntroFront::after,
-  .coverIntroInside::after,
-  .coverIntroPage::after,
-  .coverIntroStamp,
-  .coverIntroVignette,
-  .coverIntroWash,
-  .coverIntroWash span,
-  .coverIntroHint,
-  .coverIntroSheen,
-  .coverIntroBook {
-    animation: none;
+  .coverIntro *,
+  .coverIntro *::before,
+  .coverIntro *::after {
+    animation: none !important;
   }
 
   .coverIntroCamera {
@@ -742,6 +756,7 @@
   }
 
   .coverIntro {
-    animation: coverIntroLeave .4s ease .8s forwards;
+    animation: coverIntroLeave .4s ease .8s forwards, coverIntroHide 1ms linear 1.2s forwards;
   }
 }
+

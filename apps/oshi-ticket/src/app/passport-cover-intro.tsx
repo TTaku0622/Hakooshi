@@ -1,39 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type AnimationEvent } from "react";
+import { memo, useEffect, useRef, useState, useSyncExternalStore, type AnimationEvent } from "react";
 import { MapPin, Ticket } from "lucide-react";
+import { SEEN_KEY, SEEN_STYLE_ID, hasSeenCoverIntro, markCoverIntroSeen } from "./cover-intro-state";
 import "./passport-cover-intro.css";
 
 // タブを開いて最初にパスポート画面を開いたときだけ、表紙が開く演出を見せる（同じタブで再読み込みしても出さない）
 // 机に置いたパスポートを斜め上から見る → 表紙が開く → 入国スタンプが押される → カメラがページに入り込んで今の画面になる
-const SEEN_KEY = "oshi-cover-intro-seen";
-const SEEN_STYLE_ID = "oshi-cover-intro-seen";
 
-// 見たかどうかは sessionStorage に入れる。変わっても通知はないので購読はしない
+// 見たかどうかは sessionStorage に入れる（cover-intro-state.ts）。変わっても通知はないので購読はしない
 const subscribe = () => () => {};
-const hasSeen = () => {
-  try { return sessionStorage.getItem(SEEN_KEY) === "1"; } catch { return false; }
-};
-const markSeen = () => {
-  try { sessionStorage.setItem(SEEN_KEY, "1"); } catch {}
-};
 // スタンプの日付。サーバーと端末で日付がずれることがあるので、端末側でだけ出す
 const todayLabel = () => {
   const now = new Date();
   return `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")}`;
 };
 
-// ログアウトしたら、次にログインしたときにまた表紙から始める
-export function resetCoverIntro() {
-  try { sessionStorage.removeItem(SEEN_KEY); } catch {}
-  document.getElementById(SEEN_STYLE_ID)?.remove();
-}
-
 // サーバーが返す HTML には表紙が入っている。見たことがあるタブでは、React が動く前に一瞬表紙が出ないよう描画前に隠す
 const hideIfSeen = `try{if(sessionStorage.getItem("${SEEN_KEY}")==="1"){var s=document.createElement("style");s.id="${SEEN_STYLE_ID}";s.textContent="[data-cover-intro]{display:none}";document.head.appendChild(s)}}catch(e){}`;
 
-export function PassportCoverIntro({ username }: { username: string }) {
-  const seen = useSyncExternalStore(subscribe, hasSeen, () => false);
+// 親（TicketApp）は入力のたびに描き直されるので、名前が変わらない限り描き直さない
+export const PassportCoverIntro = memo(function PassportCoverIntro({ username }: { username: string }) {
+  const seen = useSyncExternalStore(subscribe, hasSeenCoverIntro, () => false);
   // サーバーでの描画とハイドレーションのときだけ true。クライアントで足した script は実行されないので、そのときは出さない
   const fromServer = useSyncExternalStore(subscribe, () => false, () => true);
   const today = useSyncExternalStore(subscribe, todayLabel, () => null);
@@ -44,23 +32,31 @@ export function PassportCoverIntro({ username }: { username: string }) {
 
   useEffect(() => {
     if (!show) return;
+    const overlay = overlayRef.current;
     // React が動き出す前に CSS のアニメーションが終わっていたら、そのまま片付ける
-    const animations = overlayRef.current?.getAnimations() ?? [];
-    if (animations.every((animation) => animation.playState === "finished")) {
-      const frame = requestAnimationFrame(() => { markSeen(); setDone(true); });
+    // （アニメーションが取れないとき・getAnimations がない古いブラウザでは、閉じずに animationend を待つ）
+    const animations = typeof overlay?.getAnimations === "function" ? overlay.getAnimations() : [];
+    if (animations.length > 0 && animations.every((animation) => animation.playState === "finished")) {
+      const frame = requestAnimationFrame(() => { markCoverIntroSeen(); setDone(true); });
       return () => cancelAnimationFrame(frame);
     }
-    // 演出中は後ろの画面をスクロールさせない
+    // 読み上げやキーボードでも飛ばせるよう、表紙にフォーカスを移す
+    overlay?.focus({ preventScroll: true });
+    // 演出中は後ろの画面をスクロールさせない（iPhone のスワイプは CSS の touch-action で止める）
     const root = document.documentElement;
     const overflow = root.style.overflow;
     root.style.overflow = "hidden";
+    // 後ろの画面のボタンなどが一緒に押されないよう、ほかより先に受け取って止める
     const skipByKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" || event.key === "Enter" || event.key === " ") setSkipping(true);
+      if (event.key !== "Escape" && event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      event.stopPropagation();
+      setSkipping(true);
     };
-    window.addEventListener("keydown", skipByKey);
+    window.addEventListener("keydown", skipByKey, true);
     return () => {
       root.style.overflow = overflow;
-      window.removeEventListener("keydown", skipByKey);
+      window.removeEventListener("keydown", skipByKey, true);
     };
   }, [show]);
 
@@ -69,16 +65,17 @@ export function PassportCoverIntro({ username }: { username: string }) {
   // 子要素のアニメーションの終わりも伝わってくるので、全体が消え終わったときだけ閉じる
   const finish = (event: AnimationEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return;
-    markSeen();
+    markCoverIntroSeen();
     setDone(true);
   };
 
   return <>
     {fromServer && <script dangerouslySetInnerHTML={{ __html: hideIfSeen }} />}
+    {/* 画面全体が「飛ばす」ボタン。中の絵は読み上げない */}
     <div ref={overlayRef} data-cover-intro="" className={`coverIntro${skipping ? " isSkipping" : ""}`}
-      aria-hidden="true" onClick={() => setSkipping(true)} onAnimationEnd={finish}>
+      role="button" tabIndex={-1} aria-label="オープニングをスキップ" onClick={() => setSkipping(true)} onAnimationEnd={finish}>
       {/* 紙で覆いきったあと、見えない場面を描かないよう透明にするための外枠 */}
-      <div className="coverIntroWorld">
+      <div className="coverIntroWorld" aria-hidden="true">
       <div className="coverIntroScene">
         {/* カメラ。机ごと傾けて手前上から見下ろし、開くにつれて近づき、最後は右のページに入り込む */}
         <div className="coverIntroCamera">
@@ -148,10 +145,10 @@ export function PassportCoverIntro({ username }: { username: string }) {
       </div>
       </div>
       {/* 周りを暗くして本に目を集める。ページに入り込むときは消す */}
-      <div className="coverIntroVignette" />
+      <div className="coverIntroVignette" aria-hidden="true" />
       {/* 最後に画面いっぱいが紙になり、そのままパスポート画面に変わる */}
-      <div className="coverIntroWash"><span>YOUR LIVE JOURNEY BEGINS</span></div>
-      <p className="coverIntroHint">タップでスキップ</p>
+      <div className="coverIntroWash" aria-hidden="true"><span>YOUR LIVE JOURNEY BEGINS</span></div>
+      <p className="coverIntroHint" aria-hidden="true">タップでスキップ</p>
     </div>
   </>;
-}
+});

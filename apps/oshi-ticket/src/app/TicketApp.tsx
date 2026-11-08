@@ -37,11 +37,18 @@ const pageTabs = [
 
 type PageTab = (typeof pageTabs)[number]["id"];
 
+// まだ押印していない記録を画像にするとき、画面に出ていないスタンプまわり（スタンプ・船旅スタンプ・押す道具・周りの光）を外す
+const UNSTAMPED_EXPORT_HIDDEN_CLASSES = ["visitStamp", "ferryStamp", "visitStampTool", "passportStampAura"];
+
+// 押印の演出が終わりの合図（animationend）を出さなくても、保存できないままにならないよう打ち切るまでの時間。
+// CSS の visitStampImpact は 0.8 秒、めくってから押すときは --stamp-delay 0.85 秒が足されて約 1.7 秒。CSS の時間を延ばすときはここも延ばす
+const STAMP_IMPACT_TIMEOUT_MS = 3000;
+
 function sameVenue(a: Venue | undefined, b: Venue | null) {
   if (!a || !b) return false;
   if (a.id && b.id && a.source === b.source) return a.id === b.id;
   const normalize = (name: string) =>
-    name.normalize("NFKC").toLocaleLowerCase().replace(/[\\s・･_-]/g, "");
+    name.normalize("NFKC").toLocaleLowerCase().replace(/[\s・･_-]/g, "");
   if (normalize(a.name) !== normalize(b.name)) return false;
   return !a.prefecture || !b.prefecture || a.prefecture === b.prefecture;
 }
@@ -409,11 +416,11 @@ export default function TicketApp({ username }: { username: string }) {
     window.setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   };
 
-  // 保存中（PNG 化の途中）は切り替えない。押印の演出中に離れるときは、演出を待たずに保存済みのページを開く
-  // （非表示になるとアニメーションが止まり、終わりの合図が来ないため）
+  // 保存中（PNG 化の途中）は切り替えない。押印の演出中に離れるときは演出を打ち切る
+  // （非表示になるとアニメーションが止まり、終わりの合図が来ないため。保存はもう済んでいるので、移った先にモーダルは出さない）
   const switchTab = (id: PageTab) => {
     if (savingTicket) return false;
-    if (stampImpact && id !== "prepare") finishStampImpact();
+    if (stampImpact && id !== "prepare") setStampImpact(undefined);
     setActiveTab(id);
     return true;
   };
@@ -520,7 +527,8 @@ export default function TicketApp({ username }: { username: string }) {
 
   const renderTicket = (node: HTMLDivElement, pixelRatio: number, includeStamp = true) => toPng(node, {
     width: PASSPORT_WIDTH, height: PASSPORT_HEIGHT, style: { transform: "none" }, pixelRatio, cacheBust: true,
-    filter: includeStamp ? undefined : (element) => !element.classList?.contains("visitStamp") && !element.classList?.contains("ferryStamp") && !element.classList?.contains("visitStampTool"),
+    // まだ押印していない記録の画像には、スタンプとその周りの光を入れない
+    filter: includeStamp ? undefined : (element) => !UNSTAMPED_EXPORT_HIDDEN_CLASSES.some((name) => element.classList?.contains(name)),
   });
 
 
@@ -536,8 +544,25 @@ export default function TicketApp({ username }: { username: string }) {
     else setStampImpact(undefined);
   };
 
+  // 終わりの合図が来なくても、一定時間で押印の演出を終えて保存済みのページを開く（finishStampImpact と同じ動き）
+  useEffect(() => {
+    if (!stampImpact) return;
+    const ticket = savedTickets.find((record) => record.id === stampImpact.ticketId);
+    const timer = window.setTimeout(() => {
+      setStampImpact(undefined);
+      if (ticket) { setSelectedSide("front"); setSelectedTicket(ticket); }
+    }, STAMP_IMPACT_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+  }, [stampImpact, savedTickets]);
+
   const canPressStamp = status === "completed" && !isStamped;
   const saveDisabled = savingTicket || !!stampImpact || !benchmark || !!storageError;
+  const showSaveButton = (!canPressStamp || ticketSide === "back") && !stampImpact;
+  // 訪問ページのスタンプ欄が押せないときは、その理由を出す（保存領域のエラーは下に別に出る）
+  const stampHint = !canPressStamp || ticketSide !== "front" || savingTicket || stampImpact || storageError ? ""
+    : benchmark ? "訪問ページのスタンプ欄をタッチして記録"
+    : currentDataError ? "旅先の統計を読み込めないため記録できません。「再試行」を押してください"
+    : "旅先の統計を読み込んでいます…";
 
   const saveTicket = async () => {
 
@@ -612,7 +637,8 @@ export default function TicketApp({ username }: { username: string }) {
         }
       }
 
-      const savedMessage = editingId !== null ? "訪問ページを更新しました。" : status === "planned" ? "遠征の予定を保存しました。帰ってきたら写真と実費を追記できます。" : "遠征の思い出を保存しました。";
+      const stamped = ticket.status === "completed" && !isStamped;
+      const savedMessage = stamped ? "遠征の思い出を記録しました。" : editingId !== null ? "訪問ページを更新しました。" : status === "planned" ? "遠征の予定を保存しました。帰ってきたら写真と実費を追記できます。" : "遠征の思い出を保存しました。";
       setNotice({ type: "success", text: newlyEarnedBadges.length ? `${savedMessage} バッジ獲得：${newlyEarnedBadges.map((badge) => `「${badge.name}」`).join("、")}` : savedMessage });
     } catch {
 
@@ -999,11 +1025,12 @@ export default function TicketApp({ username }: { username: string }) {
               } : undefined} stampPressDisabled={saveDisabled} />,
             <DestinationNotesPage key="03" {...notesProps} />, <MyJourneyPage key="04" {...notesProps} />]} />
 
-          {canPressStamp && !savingTicket && <p className="passportStampHint">訪問ページのスタンプ欄をタッチして記録</p>}
-          {(savingTicket || stampImpact) && <p className="passportStampHint" role="status">{savingTicket ? "パスポートに記録中…" : "スタンプを押しています…"}</p>}
-          {!canPressStamp && !stampImpact && (
+          {stampHint && <p className="passportStampHint">{stampHint}</p>}
+          {!showSaveButton && (savingTicket || stampImpact) && <p className="passportStampHint" role="status">{savingTicket ? "パスポートに記録中…" : "スタンプを押しています…"}</p>}
+          {/* 訪問ページではスタンプ欄をタッチして記録する。旅先ノート側（写真・実費の追記）ではボタンで記録し、訪問ページへめくってから押印する */}
+          {showSaveButton && (
             <button className="collectionSaveButton" onClick={saveTicket} disabled={saveDisabled}>
-              <Bookmark size={18} />{savingTicket ? "パスポートに記録中…" : editingId !== null ? "訪問ページを更新する" : "遠征の予定を保存する"}
+              <Bookmark size={18} />{savingTicket ? "パスポートに記録中…" : canPressStamp ? "遠征の思い出を記録する" : editingId !== null ? "訪問ページを更新する" : "遠征の予定を保存する"}
             </button>
           )}
           {notice && <p className={`saveNotice ${notice.type}`} role="status">{notice.text}</p>}

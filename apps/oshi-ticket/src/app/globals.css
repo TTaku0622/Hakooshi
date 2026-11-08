@@ -791,10 +791,45 @@ html, body {
   color: var(--passport-muted);
   font: inherit;
   font-size: 10px;
+  font-weight: 500;
   letter-spacing: .08em;
   cursor: pointer;
   white-space: nowrap;
 }
+
+/* GPS 記録中の目印（別タブにいても分かるように） */
+.pageNavStatus {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: #4f8a5b;
+  vertical-align: middle;
+  animation: pageNavStatusPulse 1.6s ease-in-out infinite;
+}
+
+.pageNavStatus.alert { background: #c0392b; }
+
+@keyframes pageNavStatusPulse { 50% { opacity: .35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pageNavStatus { animation: none; }
+}
+
+.tripSupportVenueLink {
+  margin-top: 12px;
+  padding: 8px 14px;
+  border: 1px solid var(--passport-gold);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--passport-navy);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tripSupportVenueLink:hover { background: #b89a5a1a; }
 
 .pageNav button:hover,
 .pageNav button[aria-selected="true"] {
@@ -822,10 +857,6 @@ html, body {
 .journeySections[hidden],
 .journeySections [role="tabpanel"][hidden] {
   display: none !important;
-}
-
-.workspace {
-  margin-bottom: 30px;
 }
 
 .tripSupportPanel,
@@ -920,7 +951,8 @@ html, body {
   box-shadow: 0 12px 32px #172a4510;
 }
 
-@media (max-width: 850px) {
+/* 960px 未満だとロゴ・4タブ・ユーザー欄が1行に収まらず、ロゴやログアウトが折れるのでタブを2段目に下ろす */
+@media (max-width: 960px) {
   .header {
     height: auto;
     min-height: 68px;
@@ -947,6 +979,9 @@ html, body {
     padding: 0 4px;
     font-size: 9px;
     letter-spacing: 0;
+    line-height: 1.25;
+    white-space: normal; /* 「YOUR PASSPORT」が幅に収まらないときは空白で2行にする */
+    word-break: keep-all; /* 日本語のラベルは途中で折らない */
   }
 
   .journeySections {

@@ -215,7 +215,10 @@ function getCurrentPosition(): Promise<GpsPosition> {
   });
 }
 
-export function JourneyGps({ tickets }: { tickets: SavedTicket[] }) {
+// 別のタブを見ている間も、記録中か・注意が出ているかをタブに出すための状態
+export type GpsStatus = "idle" | "tracking" | "alert";
+
+export function JourneyGps({ tickets, onStatusChange }: { tickets: SavedTicket[]; onStatusChange?: (status: GpsStatus) => void }) {
   const [selectedTicketId, setSelectedTicketId] = useState("");
   const [journeys, setJourneys] = useState<GpsJourney[]>([]);
   const [details, setDetails] = useState<GpsDetails | null>(null);
@@ -235,6 +238,9 @@ export function JourneyGps({ tickets }: { tickets: SavedTicket[] }) {
   const wakeLock = useRef<WakeLockSentinel | null>(null);
   const activeJourney = journeys.find((journey) => String(journey.ticketId) === selectedTicketId && journey.endedAt === null);
   const selectedTicket = tickets.find((ticket) => String(ticket.id) === selectedTicketId);
+  const status: GpsStatus = !tracking ? "idle" : trackingWarning || screenWarning || error ? "alert" : "tracking";
+
+  useEffect(() => { onStatusChange?.(status); }, [status, onStatusChange]);
 
   const refreshJourneys = async () => {
     const data = await responseJson<{ journeys: GpsJourney[] }>(await fetch("/api/gps", { cache: "no-store" }));

@@ -19,7 +19,7 @@ import { OshiColors } from "./oshi-colors";
 import { VenueSearch } from "./venue-search";
 import { NearbyMap } from "./nearby-map";
 import { LodgingInfo } from "./lodging-info";
-import { JourneyGps } from "./JourneyGps";
+import { JourneyGps, type GpsStatus } from "./JourneyGps";
 import type { Venue } from "./map-utils";
 import { prefectureFlagColors } from "./prefecture-colors";
 import { artistGenres, prefectures, tourismYears, parseActualTotal, type SavedTicket, type TourismData, type TripType, type TripStatus, type TicketSide } from "./trip-data";
@@ -237,6 +237,8 @@ export default function TicketApp({ username }: { username: string }) {
 
   const [activeTab, setActiveTab] = useState<PageTab>("prepare");
 
+  const [gpsStatus, setGpsStatus] = useState<GpsStatus>("idle");
+
   const pageTabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const [storageError, setStorageError] = useState("");
@@ -349,7 +351,15 @@ export default function TicketApp({ username }: { username: string }) {
 
   const visibleTickets = savedTickets.filter((ticket) => collectionFilter === "all" || (ticket.status ?? "completed") === collectionFilter);
 
+  // フォームは「遠征を準備する」タブにあるので、タブを切り替えて表示されてからスクロールする
+  const showPrepareForm = () => {
+    setActiveTab("prepare");
+    window.setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+  };
+
   const handlePageTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+    // Alt+← などのブラウザ操作は止めない
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     let nextIndex: number;
     if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % pageTabs.length;
     else if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + pageTabs.length) % pageTabs.length;
@@ -616,7 +626,7 @@ export default function TicketApp({ username }: { username: string }) {
     setNotice(null);
     setTicketSide(complete ? "back" : "front");
 
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    showPrepareForm();
   };
 
 
@@ -696,10 +706,11 @@ export default function TicketApp({ username }: { username: string }) {
             role="tab"
             aria-selected={activeTab === tab.id}
             aria-controls={`tabpanel-${tab.id}`}
+            aria-label={tab.id === "gps" && gpsStatus !== "idle" ? `GPS（${gpsStatus === "alert" ? "記録に注意あり" : "記録中"}）` : undefined}
             tabIndex={activeTab === tab.id ? 0 : -1}
             onClick={() => setActiveTab(tab.id)}
             onKeyDown={(event) => handlePageTabKeyDown(event, index)}
-          >{tab.label}</button>)}
+          >{tab.label}{tab.id === "gps" && gpsStatus !== "idle" && <span className={`pageNavStatus ${gpsStatus}`} aria-hidden="true" />}</button>)}
         </nav>
         <div className="headerUser"><span>{username}</span><form action={logout}><button type="submit" className="logoutButton"><LogOut size={14} />ログアウト</button></form></div>
       </header>
@@ -951,13 +962,14 @@ export default function TicketApp({ username }: { username: string }) {
             <span className="collectionEyebrow">PLAN YOUR LIVE TRIP</span>
             <h2 id="tripSupportHeading">ライブ前後の寄り道・移動・宿泊</h2>
             <p>会場周辺のスポット、レンタカー、宿泊先をまとめてチェック。</p>
+            {!venue && <button type="button" className="tripSupportVenueLink" onClick={showPrepareForm}>「遠征を準備する」で会場を選ぶ</button>}
           </div>
           <NearbyMap venue={venue} />
           <LodgingInfo key={`${venue?.latitude}/${venue?.longitude}`} venue={venue} />
         </section>
 
         <div className="journeyPanel" id="tabpanel-gps" role="tabpanel" aria-labelledby="tab-gps" hidden={activeTab !== "gps"}>
-          <JourneyGps tickets={savedTickets} />
+          <JourneyGps tickets={savedTickets} onStatusChange={setGpsStatus} />
         </div>
 
         <section className="accountPage" id="tabpanel-account" role="tabpanel" aria-labelledby="tab-account" hidden={activeTab !== "account"}>
@@ -1004,11 +1016,7 @@ export default function TicketApp({ username }: { username: string }) {
                   <Trash2 size={16} />
                 </button>
               </article>)}</div>}
-            <button type="button" className="newTripButton" onClick={() => {
-              startNewTrip();
-              setActiveTab("prepare");
-              window.setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
-            }}>
+            <button type="button" className="newTripButton" onClick={() => { startNewTrip(); showPrepareForm(); }}>
               <Plus size={16} />新しい遠征を作る</button>
           </div>
         </section>

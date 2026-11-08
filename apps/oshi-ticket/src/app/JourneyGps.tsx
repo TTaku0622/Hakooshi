@@ -487,7 +487,7 @@ export function JourneyGps({ tickets }: { tickets: SavedTicket[] }) {
     }
   };
 
-  return <section className="gpsPanel" aria-labelledby="gpsHeading">
+  return <section className="gpsPanel" id="gps-tracking" aria-labelledby="gpsHeading">
     <div className="gpsPanelHeading">
       <span className="gpsPanelIcon"><MapPin size={18} /></span>
       <div><h2 id="gpsHeading">GPSで旅の軌跡を記録</h2><p>位置情報は記録中のみ取得し、アカウントに保存します。</p></div>

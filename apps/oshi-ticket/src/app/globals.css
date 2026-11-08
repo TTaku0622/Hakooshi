@@ -771,6 +771,203 @@ html, body {
 .passportUnder + .passportUnder .passportShade { background: linear-gradient(90deg,#2f2a1c33,transparent 35%); }
 @keyframes passportShade { 0%, 18% { opacity: 0; } 42% { opacity: 1; } 72%, 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .passportLeaf { transition: none; } .passportShade { display: none; } }
+
+.pageNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 28px);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.pageNav button {
+  position: relative;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--passport-muted);
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: .08em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pageNav button:hover,
+.pageNav button[aria-selected="true"] {
+  color: var(--passport-gold);
+}
+
+.pageNav button[aria-selected="true"] {
+  border-bottom-color: var(--passport-gold);
+  font-weight: 700;
+}
+
+.pageNav button:focus-visible {
+  outline: 2px solid var(--passport-gold);
+  outline-offset: -2px;
+}
+
+.journeySections {
+  display: grid;
+  gap: 24px;
+  max-width: 1320px;
+  margin: 0 auto 70px;
+}
+
+.workspace[hidden],
+.journeySections[hidden],
+.journeySections [role="tabpanel"][hidden] {
+  display: none !important;
+}
+
+.workspace {
+  margin-bottom: 30px;
+}
+
+.tripSupportPanel,
+.accountPage {
+  min-width: 0;
+  padding: clamp(18px, 3vw, 32px);
+  border: 1px solid var(--passport-border);
+  border-radius: 5px;
+  background: var(--passport-paper);
+  box-shadow: 0 12px 32px #172a4510;
+}
+
+.accountSectionHeading h2,
+.accountPageHeading h2 {
+  margin: 7px 0;
+  color: var(--passport-navy);
+  font-family: Georgia, serif;
+  font-size: clamp(20px, 3vw, 28px);
+  letter-spacing: .08em;
+}
+
+.accountSectionHeading p,
+.accountPageHeading p {
+  margin: 0;
+  color: var(--passport-muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.tripSupportPanel > .nearbySection:first-of-type {
+  margin-top: 24px;
+}
+
+.tripSupportPanel .lodgingInfo {
+  margin-top: 24px;
+}
+
+.accountPageHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--passport-gold);
+}
+
+.accountPageHeading h2 {
+  margin: 6px 0;
+  font-size: clamp(24px, 4vw, 34px);
+  letter-spacing: .14em;
+}
+
+.accountJourneyCount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 88px;
+  padding: 10px 14px;
+  border: 1px solid var(--passport-gold);
+  color: var(--passport-navy);
+}
+
+.accountJourneyCount strong {
+  font: 28px Georgia, serif;
+}
+
+.accountJourneyCount span {
+  color: var(--passport-muted);
+  font: 9px Georgia, serif;
+  letter-spacing: .1em;
+}
+
+.accountPage .passportProgress {
+  margin-top: 0;
+  border-top: 0;
+}
+
+.accountPage .collectionSection {
+  margin-top: 28px;
+}
+
+.journeyPanel {
+  min-width: 0;
+}
+
+.journeyPanel .gpsPanel {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(18px, 3vw, 32px);
+  border-color: var(--passport-border);
+  border-radius: 5px;
+  box-shadow: 0 12px 32px #172a4510;
+}
+
+@media (max-width: 850px) {
+  .header {
+    height: auto;
+    min-height: 68px;
+    flex-wrap: wrap;
+    padding: 12px 0;
+  }
+
+  .pageNav {
+    order: 3;
+    width: 100%;
+    padding: 12px 0 2px;
+  }
+}
+
+@media (max-width: 520px) {
+  .pageNav {
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .pageNav button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 4px;
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+
+  .journeySections {
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .accountPageHeading {
+    align-items: flex-start;
+  }
+
+  .accountJourneyCount {
+    min-width: 68px;
+    padding: 8px;
+  }
+
+  .tripSupportPanel,
+  .accountPage {
+    padding: 18px 14px;
+  }
+}
 .passportBrand { display: flex; align-items: center; gap: 9px; color: #7c7753; font-family: Georgia,serif; font-size: 17px; letter-spacing: .12em; font-weight: 700; }
 .passportBrand small { display: block; font: 9px Arial,sans-serif; letter-spacing: .18em; margin-top: 4px; }
 .passportKicker { font-size: 6px; letter-spacing: .11em; color: #9e9982; margin: 13px 0 19px; }

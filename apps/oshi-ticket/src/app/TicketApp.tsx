@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { logout } from "./auth-actions";
 import { toPng } from "html-to-image";
 import { Download, MapPin, Sparkles, BookOpen, Bookmark, Trash2, Plus, Pencil, LogOut } from "lucide-react";
@@ -23,6 +23,15 @@ import { JourneyGps } from "./JourneyGps";
 import type { Venue } from "./map-utils";
 import { prefectureFlagColors } from "./prefecture-colors";
 import { artistGenres, prefectures, tourismYears, parseActualTotal, type SavedTicket, type TourismData, type TripType, type TripStatus, type TicketSide } from "./trip-data";
+
+const pageTabs = [
+  { id: "prepare", label: "遠征を準備する" },
+  { id: "venue", label: "会場周辺" },
+  { id: "account", label: "YOUR PASSPORT" },
+  { id: "gps", label: "GPS" },
+] as const;
+
+type PageTab = (typeof pageTabs)[number]["id"];
 
 function sameVenue(a: Venue | undefined, b: Venue | null) {
   if (!a || !b) return false;
@@ -221,6 +230,10 @@ export default function TicketApp({ username }: { username: string }) {
 
   const [collectionFilter, setCollectionFilter] = useState<"all" | TripStatus>("all");
 
+  const [activeTab, setActiveTab] = useState<PageTab>("prepare");
+
+  const pageTabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
   const [storageError, setStorageError] = useState("");
 
   const [notice, setNotice] = useState<{ type: "success" | "error"; text: string; } | null>(null);
@@ -330,6 +343,19 @@ export default function TicketApp({ username }: { username: string }) {
   const seed = useMemo(() => hashString(`${origin}-${destination}-${oshi}-${event}`), [origin, destination, oshi, event]);
 
   const visibleTickets = savedTickets.filter((ticket) => collectionFilter === "all" || (ticket.status ?? "completed") === collectionFilter);
+
+  const handlePageTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+    let nextIndex: number;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % pageTabs.length;
+    else if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + pageTabs.length) % pageTabs.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = pageTabs.length - 1;
+    else return;
+
+    event.preventDefault();
+    setActiveTab(pageTabs[nextIndex].id);
+    pageTabRefs.current[nextIndex]?.focus();
+  };
 
 
   const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -623,6 +649,20 @@ export default function TicketApp({ username }: { username: string }) {
           </span>
           <span>OSHI PASSPORT</span>
         </div>
+        <nav className="pageNav" role="tablist" aria-label="メインメニュー">
+          {pageTabs.map((tab, index) => <button
+            key={tab.id}
+            ref={(element) => { pageTabRefs.current[index] = element; }}
+            id={`tab-${tab.id}`}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`tabpanel-${tab.id}`}
+            tabIndex={activeTab === tab.id ? 0 : -1}
+            onClick={() => setActiveTab(tab.id)}
+            onKeyDown={(event) => handlePageTabKeyDown(event, index)}
+          >{tab.label}</button>)}
+        </nav>
         <div className="headerUser"><span>{username}</span><form action={logout}><button type="submit" className="logoutButton"><LogOut size={14} />ログアウト</button></form></div>
       </header>
 
@@ -635,9 +675,9 @@ export default function TicketApp({ username }: { username: string }) {
         <p>遠征前は、旅先の宿泊傾向と寄り道をチェック。<br />帰ってきたら写真と実費を加えて、訪問スタンプを増やそう。</p>
       </section>
 
-      <div className="workspace">
+      <div className="workspace" id="tabpanel-prepare" role="tabpanel" aria-labelledby="tab-prepare" hidden={activeTab !== "prepare"}>
 
-        <section className="formPanel" ref={formRef}>
+        <section className="formPanel" id="journey-prep" ref={formRef}>
 
           <fieldset className="tripFields" disabled={savingTicket}>
 
@@ -858,26 +898,46 @@ export default function TicketApp({ username }: { username: string }) {
           {storageError && <p className="formError" role="alert">{storageError}</p>}
           {mapError && <p className="note">地図データを読み込めませんでした。再読み込みしてください。</p>}
           <p className="note">個人の旅の記録として楽しむ、推し旅パスポートです。</p>
+        </section>
 
+      </div>
+      <div className="journeySections" hidden={activeTab === "prepare"}>
+        <section className="tripSupportPanel" id="tabpanel-venue" role="tabpanel" aria-labelledby="tab-venue" hidden={activeTab !== "venue"}>
+          <div className="accountSectionHeading">
+            <span className="collectionEyebrow">PLAN YOUR LIVE TRIP</span>
+            <h2 id="tripSupportHeading">ライブ前後の寄り道・移動・宿泊</h2>
+            <p>会場周辺のスポット、レンタカー、宿泊先をまとめてチェック。</p>
+          </div>
           <NearbyMap venue={venue} />
           <LodgingInfo key={`${venue?.latitude}/${venue?.longitude}`} venue={venue} />
+        </section>
 
-          <PassportProgress records={savedTickets} onOpen={(record) => { setSelectedTicket(record); setSelectedSide("front"); }} />
-
+        <div className="journeyPanel" id="tabpanel-gps" role="tabpanel" aria-labelledby="tab-gps" hidden={activeTab !== "gps"}>
           <JourneyGps tickets={savedTickets} />
+        </div>
 
+        <section className="accountPage" id="tabpanel-account" role="tabpanel" aria-labelledby="tab-account" hidden={activeTab !== "account"}>
+          <header className="accountPageHeading">
+            <div>
+              <span className="collectionEyebrow">YOUR PASSPORT</span>
+              <h2 id="accountPageHeading">MY JOURNEYS</h2>
+              <p>{username}さんの推し旅と訪問スタンプ</p>
+            </div>
+            <div className="accountJourneyCount">
+              <strong>{savedTickets.length}</strong>
+              <span>JOURNEYS</span>
+            </div>
+          </header>
+          <PassportProgress records={savedTickets} onOpen={(record) => { setSelectedTicket(record); setSelectedSide("front"); }} />
           <div className="collectionSection">
-
             <div className="collectionHeading">
               <div>
-                <span className="collectionEyebrow">YOUR PASSPORT</span>
-                <h2>MY JOURNEYS</h2>
+                <span className="collectionEyebrow">TRAVEL LOG</span>
+                <h2>遠征の記録</h2>
               </div>
               <span className="collectionCount">{savedTickets.length} JOURNEYS</span>
             </div>
-
             <p className="collectionStorageNote">このブラウザに保存されます。予定の訪問ページを開くと、写真や実費を追記できます。</p>
-
             <div className="collectionFilters" aria-label="コレクションの絞り込み">{(["all", "planned", "completed"] as const).map((filter) =>
               <button type="button" key={filter} aria-pressed={collectionFilter === filter} onClick={() => setCollectionFilter(filter)}>{filter === "all" ? "すべて" : filter === "planned" ? "遠征予定" : "遠征済み"}</button>)}</div>
             {visibleTickets.length === 0 ? <div className="collectionEmpty">
@@ -900,13 +960,14 @@ export default function TicketApp({ username }: { username: string }) {
                   <Trash2 size={16} />
                 </button>
               </article>)}</div>}
-            <button type="button" className="newTripButton" onClick={() => { startNewTrip(); formRef.current?.scrollIntoView({ behavior: "smooth" }); }}>
+            <button type="button" className="newTripButton" onClick={() => {
+              startNewTrip();
+              setActiveTab("prepare");
+              window.setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+            }}>
               <Plus size={16} />新しい遠征を作る</button>
-
           </div>
-
         </section>
-
       </div>
       {selectedTicket && <div className="ticketModalOverlay" onClick={() => setSelectedTicket(null)}>
         <div className="ticketModal" role="dialog" aria-modal="true" aria-label="訪問ページの詳細" onClick={(event) => event.stopPropagation()}>
